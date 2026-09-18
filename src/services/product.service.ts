@@ -1,433 +1,211 @@
-import {
-    prisma
-} from "@/lib/prisma";
+import { prisma } from "@/lib/prisma";
 
-
-import {
-    Prisma
-} from "@prisma/client";
-
-
-
+import { Prisma } from "@prisma/client";
 
 // GET ALL PRODUCT
 export async function getProducts(
-    page:number,
-    limit:number,
-    search?:string,
-    sort?:string,
-    minPrice?:number,
-    maxPrice?:number,
-){
-
-    const skip =
-        (page - 1) * limit;
-
-
-
-    const where = {
-
-
-        ...(search
-            ?
-            {
-                name:{
-                    contains:search
-                }
-            }
-            :
-            {}
-        ),
-
-
-
-
-        ...(minPrice !== undefined ||
-            maxPrice !== undefined
-            ?
-            {
-
-                price:{
-
-                    ...(minPrice !== undefined
-                        ?
-                        {
-                            gte:minPrice
-                        }
-                        :
-                        {}
-                    ),
-
-
-                    ...(maxPrice !== undefined
-                        ?
-                        {
-                            lte:maxPrice
-                        }
-                        :
-                        {}
-                    )
-
-                }
-
-            }
-            :
-            {}
-        )
-
-    };
-
-
-
-
-
-    let orderBy:
-    Prisma.ProductOrderByWithRelationInput
-    |
-    undefined;
-
-
-
-    if(sort === "price_asc"){
-
-        orderBy = {
-            price:"asc"
-        };
-
-    }
-
-
-
-    if(sort === "price_desc"){
-
-        orderBy = {
-            price:"desc"
-        };
-
-    }
-
-
-
-
-
-
-    const products =
-        await prisma.product.findMany({
-
-            where:{
-
-                ...where,
-
-                deletedAt:null
-
-            },
-
-
-            skip,
-
-
-            take:limit,
-
-
-            orderBy,
-
-
-
-            include:{
-
-                category:true
-
-            }
-
-        });
-
-
-
-
-
-
-
-    const total =
-        await prisma.product.count({
-
-            where:{
-
-                ...where,
-
-                deletedAt:null
-
-            }
-
-        });
-
-
-
-
-
-
-
-    return {
-
-        data:products,
-
-
-        pagination:{
-
-            page,
-
-            limit,
-
-            total,
-
-            totalPages:
-            Math.ceil(
-                total / limit
-            )
-
+  page: number,
+  limit: number,
+  search?: string,
+  sort?: string,
+  minPrice?: number,
+  maxPrice?: number,
+) {
+  const skip = (page - 1) * limit;
+
+  const where = {
+    ...(search
+      ? {
+          name: {
+            contains: search,
+          },
         }
+      : {}),
 
+    ...(minPrice !== undefined || maxPrice !== undefined
+      ? {
+          price: {
+            ...(minPrice !== undefined
+              ? {
+                  gte: minPrice,
+                }
+              : {}),
+
+            ...(maxPrice !== undefined
+              ? {
+                  lte: maxPrice,
+                }
+              : {}),
+          },
+        }
+      : {}),
+  };
+
+  let orderBy: Prisma.ProductOrderByWithRelationInput | undefined;
+
+  if (sort === "price_asc") {
+    orderBy = {
+      price: "asc",
     };
+  }
 
+  if (sort === "price_desc") {
+    orderBy = {
+      price: "desc",
+    };
+  }
+
+  const products = await prisma.product.findMany({
+    where: {
+      ...where,
+
+      deletedAt: null,
+    },
+
+    skip,
+
+    take: limit,
+
+    orderBy,
+
+    include: {
+      category: true,
+    },
+  });
+
+  const total = await prisma.product.count({
+    where: {
+      ...where,
+
+      deletedAt: null,
+    },
+  });
+
+  return {
+    data: products,
+
+    pagination: {
+      page,
+
+      limit,
+
+      total,
+
+      totalPages: Math.ceil(total / limit),
+    },
+  };
 }
-
-
-
-
-
-
-
 
 // GET DETAIL PRODUCT
-export async function getProductById(
-    id:number
-){
+export async function getProductById(id: number) {
+  return prisma.product.findFirst({
+    where: {
+      id,
 
-    return await prisma.product.findFirst({
+      deletedAt: null,
+    },
 
-        where:{
-
-            id,
-
-            deletedAt:null
-
-        },
-
-
-        include:{
-
-            category:true
-
-        }
-
-    });
-
+    include: {
+      category: true,
+    },
+  });
 }
-
-
-
-
-
-
-
-
 
 // CREATE PRODUCT
-export async function createProduct(
-    data:{
-        name:string;
+export async function createProduct(data: {
+  name: string;
 
-        price:number;
+  price: number;
 
-        categoryId?:number;
+  categoryId?: number;
 
-        image?:string;
+  image?: string;
+}) {
+  return prisma.product.create({
+    data: {
+      name: data.name,
 
-    }
-){
+      price: data.price,
 
-    return await prisma.product.create({
+      image: data.image,
 
-        data:{
+      ...(data.categoryId !== undefined
+        ? {
+            category: {
+              connect: {
+                id: data.categoryId,
+              },
+            },
+          }
+        : {}),
+    },
 
-
-            name:
-            data.name,
-
-
-            price:
-            data.price,
-
-
-            image:
-            data.image,
-
-
-
-            ...(data.categoryId
-                ?
-                {
-
-                    category:{
-
-                        connect:{
-
-                            id:data.categoryId
-
-                        }
-
-                    }
-
-                }
-                :
-                {}
-            )
-
-
-        },
-
-
-        include:{
-
-            category:true
-
-        }
-
-
-    });
-
+    include: {
+      category: true,
+    },
+  });
 }
-
-
-
-
-
-
-
-
 
 // UPDATE PRODUCT
 export async function updateProduct(
+  id: number,
 
-    id:number,
+  data: {
+    name: string;
 
-    data:{
+    price: number;
 
-        name:string;
+    categoryId?: number;
 
-        price:number;
+    image?: string;
+  },
+) {
+  return prisma.product.update({
+    where: {
+      id,
+    },
 
-        categoryId?:number;
+    data: {
+      name: data.name,
 
-        image?:string;
+      price: data.price,
 
-    }
+      ...(data.image !== undefined
+        ? {
+            image: data.image,
+          }
+        : {}),
 
-){
+      ...(data.categoryId !== undefined
+        ? {
+            category: {
+              connect: {
+                id: data.categoryId,
+              },
+            },
+          }
+        : {}),
+    },
 
-
-    return await prisma.product.update({
-
-
-        where:{
-
-            id
-
-        },
-
-
-
-        data:{
-
-
-            name:
-            data.name,
-
-
-
-            price:
-            data.price,
-
-
-
-            ...(data.image !== undefined
-                ?
-                {
-                    image:data.image
-                }
-                :
-                {}
-            ),
-
-
-
-
-            ...(data.categoryId
-                ?
-                {
-
-                    category:{
-
-                        connect:{
-
-                            id:data.categoryId
-
-                        }
-
-                    }
-
-                }
-                :
-                {}
-            )
-
-
-        },
-
-
-
-        include:{
-
-
-            category:true
-
-
-        }
-
-
-    });
-
-
+    include: {
+      category: true,
+    },
+  });
 }
 
-
-
-
-
-
-
-
-
 // DELETE PRODUCT
-export async function deleteProduct(
-    id:number
-){
+export async function deleteProduct(id: number) {
+  return prisma.product.update({
+    where: {
+      id,
+    },
 
-    return await prisma.product.update({
+    data: {
+      deletedAt: new Date(),
+    },
 
-        where:{
-
-            id
-
-        },
-
-
-        data:{
-
-            deletedAt:
-            new Date()
-
-        }
-
-    });
-
+    include: {
+      category: true,
+    },
+  });
 }

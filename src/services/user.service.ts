@@ -1,60 +1,39 @@
 import { prisma } from "@/lib/prisma";
 
-
-export async function createUser(
-    data:{
-        name:string;
-        email:string;
-        password:string;
-    }
-){
-
-    return await prisma.user.create({
-
-        data
-
-    });
-
+export async function createUser(data: {
+  name: string;
+  email: string;
+  password: string;
+}) {
+  return prisma.user.create({
+    data,
+  });
 }
 
-
-
-export async function getUserByEmail(
-    email:string
-){
-
-    return await prisma.user.findUnique({
-
-        where:{
-            email
-        }
-
-    });
-
+export async function getUserByEmail(email: string) {
+  return prisma.user.findUnique({
+    where: {
+      email,
+    },
+  });
 }
 
-export async function getUserById(
-    id:number
-){
+export async function getUserById(id: number) {
+  return prisma.user.findUnique({
+    where: {
+      id,
+    },
 
-    return await prisma.user.findUnique({
+    select: {
+      id: true,
 
-        where:{
-            id
-        },
+      name: true,
 
-        select:{
+      email: true,
 
-            id:true,
+      role: true,
 
-            name:true,
-
-            email:true,
-
-            createdAt:true
-
-        }
-
-    });
-
+      createdAt: true,
+    },
+  });
 }

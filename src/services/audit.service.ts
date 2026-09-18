@@ -1,65 +1,41 @@
-import {
-    prisma
-} from "@/lib/prisma";
+import { prisma } from "@/lib/prisma";
 
+import { Prisma } from "@prisma/client";
 
-import {
-    Prisma
-} from "@prisma/client";
+export async function createAuditLog(data: {
+  userId?: number;
 
+  action: string;
 
+  entity: string;
 
-export async function createAuditLog(
-    data:{
-        userId?:number;
+  entityId: number;
 
-        action:string;
+  oldData?: Prisma.InputJsonValue;
 
-        entity:string;
+  newData?: Prisma.InputJsonValue;
 
-        entityId:number;
+  ipAddress?: string;
 
-        oldData?:Prisma.InputJsonValue;
+  userAgent?: string;
+}) {
+  return prisma.auditLog.create({
+    data: {
+      userId: data.userId,
 
-        newData?:Prisma.InputJsonValue;
+      action: data.action,
 
-        ipAddress?:string;
+      entity: data.entity,
 
-        userAgent?:string;
-    }
-){
+      entityId: data.entityId,
 
+      oldData: data.oldData,
 
-    return await prisma.auditLog.create({
+      newData: data.newData,
 
-        data:{
+      ipAddress: data.ipAddress,
 
-
-            userId:data.userId,
-
-
-            action:data.action,
-
-
-            entity:data.entity,
-
-
-            entityId:data.entityId,
-
-
-            oldData:data.oldData,
-
-
-            newData:data.newData,
-
-
-            ipAddress:data.ipAddress,
-
-
-            userAgent:data.userAgent
-
-        }
-
-    });
-
+      userAgent: data.userAgent,
+    },
+  });
 }

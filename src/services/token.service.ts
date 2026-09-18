@@ -4,6 +4,18 @@ import { prisma } from "@/lib/prisma";
 
 import { generateToken } from "@/lib/jwt";
 
+function createRefreshTokenValue() {
+  return crypto.randomBytes(64).toString("hex");
+}
+
+function createRefreshTokenExpiry() {
+  const expiredAt = new Date();
+
+  expiredAt.setDate(expiredAt.getDate() + 7);
+
+  return expiredAt;
+}
+
 export function generateAccessToken(user: {
   id: number;
   email: string;
@@ -19,11 +31,9 @@ export function generateAccessToken(user: {
 }
 
 export async function generateRefreshToken(userId: number) {
-  const token = crypto.randomBytes(64).toString("hex");
+  const token = createRefreshTokenValue();
 
-  const expiredAt = new Date();
-
-  expiredAt.setDate(expiredAt.getDate() + 7);
+  const expiredAt = createRefreshTokenExpiry();
 
   await prisma.refreshToken.create({
     data: {
@@ -111,11 +121,9 @@ export async function rotateRefreshToken(token: string) {
     return null;
   }
 
-  const newRefreshToken = crypto.randomBytes(64).toString("hex");
+  const newToken = createRefreshTokenValue();
 
-  const expiredAt = new Date();
-
-  expiredAt.setDate(expiredAt.getDate() + 7);
+  const expiredAt = createRefreshTokenExpiry();
 
   await prisma.$transaction([
     prisma.refreshToken.delete({
@@ -126,7 +134,7 @@ export async function rotateRefreshToken(token: string) {
 
     prisma.refreshToken.create({
       data: {
-        token: newRefreshToken,
+        token: newToken,
 
         userId: refreshToken.user.id,
 
@@ -136,7 +144,7 @@ export async function rotateRefreshToken(token: string) {
   ]);
 
   return {
-    refreshToken: newRefreshToken,
+    refreshToken: newToken,
 
     user: refreshToken.user,
   };

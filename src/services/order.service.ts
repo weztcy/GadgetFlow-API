@@ -11,15 +11,17 @@ export async function createOrder(data: {
     quantity: number;
   }[];
 }) {
-  return await prisma.$transaction(async (tx) => {
+  return prisma.$transaction(async (tx) => {
     let total = 0;
 
     const orderItems = [];
 
     for (const item of data.items) {
-      const product = await tx.product.findUnique({
+      const product = await tx.product.findFirst({
         where: {
           id: item.productId,
+
+          deletedAt: null,
         },
       });
 
@@ -46,7 +48,7 @@ export async function createOrder(data: {
       });
     }
 
-    const order = await tx.order.create({
+    return tx.order.create({
       data: {
         customerName: data.customerName,
 
@@ -65,13 +67,11 @@ export async function createOrder(data: {
         },
       },
     });
-
-    return order;
   });
 }
 
 export async function getOrders() {
-  return await prisma.order.findMany({
+  return prisma.order.findMany({
     include: {
       items: {
         include: {
@@ -87,7 +87,7 @@ export async function getOrders() {
 }
 
 export async function getOrderById(id: number) {
-  return await prisma.order.findUnique({
+  return prisma.order.findUnique({
     where: {
       id,
     },
@@ -102,9 +102,8 @@ export async function getOrderById(id: number) {
   });
 }
 
-// DELETE ORDER
 export async function deleteOrder(id: number) {
-  return await prisma.$transaction(async (tx) => {
+  return prisma.$transaction(async (tx) => {
     const order = await tx.order.findUnique({
       where: {
         id,
@@ -131,7 +130,7 @@ export async function deleteOrder(id: number) {
       },
     });
 
-    const deletedOrder = await tx.order.delete({
+    return tx.order.delete({
       where: {
         id,
       },
@@ -140,7 +139,5 @@ export async function deleteOrder(id: number) {
         items: true,
       },
     });
-
-    return deletedOrder;
   });
 }

@@ -2,22 +2,40 @@ import crypto from "crypto";
 
 import { prisma } from "@/lib/prisma";
 
-export async function generateResetToken(userId: number) {
-  const token = crypto.randomBytes(64).toString("hex");
+function createResetTokenValue() {
+  return crypto.randomBytes(64).toString("hex");
+}
 
+function createResetTokenExpiry() {
   const expiredAt = new Date();
 
   expiredAt.setMinutes(expiredAt.getMinutes() + 15);
 
-  await prisma.passwordResetToken.create({
-    data: {
-      token,
+  return expiredAt;
+}
 
-      userId,
+export async function generateResetToken(userId: number) {
+  const token = createResetTokenValue();
 
-      expiredAt,
-    },
-  });
+  const expiredAt = createResetTokenExpiry();
+
+  await prisma.$transaction([
+    prisma.passwordResetToken.deleteMany({
+      where: {
+        userId,
+      },
+    }),
+
+    prisma.passwordResetToken.create({
+      data: {
+        token,
+
+        userId,
+
+        expiredAt,
+      },
+    }),
+  ]);
 
   return token;
 }
@@ -61,7 +79,7 @@ export async function verifyResetToken(token: string) {
 }
 
 export async function deleteResetToken(token: string) {
-  return await prisma.passwordResetToken.delete({
+  return prisma.passwordResetToken.delete({
     where: {
       token,
     },
