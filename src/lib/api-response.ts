@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
 
 
-export function successResponse(
+export function successResponse<T>(
     message:string,
-    data:any,
+    data:T,
     status:number = 200
 ){
 
@@ -25,14 +25,16 @@ export function successResponse(
 export function errorResponse(
     message:string,
     status:number = 400,
-    errors?:any
+    code:string = "ERROR",
+    errors?:unknown
 ){
 
     return NextResponse.json(
         {
             success:false,
             message,
-            errors
+            code,
+            errors: errors ?? null
         },
         {
             status

@@ -1,11 +1,16 @@
 import {
+    NextRequest
+} from "next/server";
+
+
+import {
     handleApiError
 } from "@/lib/error-handler";
 
 
 
 type RouteHandler = (
-    request: Request,
+    request: NextRequest,
     context?: any
 ) => Promise<Response>;
 
@@ -15,8 +20,8 @@ export function asyncHandler(
     handler: RouteHandler
 ){
 
-    return async (
-        request: Request,
+    return async(
+        request: NextRequest,
         context?: any
     ): Promise<Response> => {
 

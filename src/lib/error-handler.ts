@@ -14,22 +14,24 @@ import {
 
 
 
-
 export function handleApiError(
     error: unknown
 ){
+
 
     console.error(error);
 
 
 
-    // Custom API Error
-
+    /**
+     * Custom API Error
+     */
     if(error instanceof ApiError){
 
         return errorResponse(
             error.message,
-            error.statusCode
+            error.statusCode,
+            error.code
         );
 
     }
@@ -38,38 +40,77 @@ export function handleApiError(
 
 
 
-    // Prisma Error
-
+    /**
+     * Prisma Database Error
+     */
     if(
         error instanceof Prisma.PrismaClientKnownRequestError
     ){
 
 
-        // Foreign key constraint
+        switch(error.code){
 
-        if(error.code === "P2003"){
 
-            return errorResponse(
-                "Data masih digunakan oleh data lain",
-                409
-            );
+
+            /**
+             * Unique constraint violation
+             * Example:
+             * duplicate email
+             * duplicate product code
+             */
+            case "P2002":
+
+                return errorResponse(
+                    "Data sudah tersedia",
+                    409,
+                    "DUPLICATE_DATA"
+                );
+
+
+
+
+
+            /**
+             * Foreign key constraint violation
+             * Example:
+             * delete category that still has products
+             */
+            case "P2003":
+
+                return errorResponse(
+                    "Data masih digunakan oleh data lain",
+                    409,
+                    "FOREIGN_KEY_ERROR"
+                );
+
+
+
+
+
+            /**
+             * Record not found
+             */
+            case "P2025":
+
+                return errorResponse(
+                    "Data tidak ditemukan",
+                    404,
+                    "NOT_FOUND"
+                );
+
+
+
+
+
+            default:
+
+                return errorResponse(
+                    "Database error",
+                    500,
+                    "DATABASE_ERROR"
+                );
 
         }
-
-
-
-
-        // Record not found
-
-        if(error.code === "P2025"){
-
-            return errorResponse(
-                "Data tidak ditemukan",
-                404
-            );
-
-        }
-
 
     }
 
@@ -77,9 +118,13 @@ export function handleApiError(
 
 
 
+    /**
+     * Unknown Error
+     */
     return errorResponse(
         "Internal Server Error",
-        500
+        500,
+        "INTERNAL_SERVER_ERROR"
     );
 
 }
