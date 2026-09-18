@@ -61,12 +61,6 @@ Key features and implementations include:
 * Nested relational API response
 * Swagger OpenAPI documentation
 
-
-Benar, untuk bagian tengah README sebaiknya **jangan menambahkan section baru** seperti `API Capabilities Summary` karena itu mengubah struktur dokumentasi. Fokusnya hanya merapikan isi yang sudah ada.
-
-Berikut versi **replacement langsung** untuk bagian tersebut. Struktur tetap sama, hanya dirapikan dan digabungkan:
-
-````md
 ## 📱 Product Management
 
 GadgetFlow API provides complete CRUD operations for smartphone product management.
