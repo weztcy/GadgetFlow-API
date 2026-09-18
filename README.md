@@ -288,6 +288,8 @@ Middleware Layer
 Prisma ORM
     ↓
 MySQL Database
+```
+
 Responsibilities:
 
 **API Routes**
