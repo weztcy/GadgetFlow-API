@@ -1,21 +1,21 @@
 import { NextResponse } from "next/server";
 
 export interface SuccessResponse<T> {
-  success: boolean;
+  readonly success: boolean;
 
-  message: string;
+  readonly message: string;
 
-  data: T;
+  readonly data: T;
 }
 
 export interface ErrorResponse {
-  success: boolean;
+  readonly success: boolean;
 
-  message: string;
+  readonly message: string;
 
-  code: string;
+  readonly code: string;
 
-  errors: unknown | null;
+  readonly errors: unknown | null;
 }
 
 export function successResponse<T>(
@@ -24,7 +24,7 @@ export function successResponse<T>(
   data: T,
 
   status: number = 200,
-) {
+): NextResponse<SuccessResponse<T>> {
   const response: SuccessResponse<T> = {
     success: true,
 
@@ -50,7 +50,7 @@ export function errorResponse(
   code: string = "ERROR",
 
   errors?: unknown,
-) {
+): NextResponse<ErrorResponse> {
   const response: ErrorResponse = {
     success: false,
 

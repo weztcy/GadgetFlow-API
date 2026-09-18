@@ -1,57 +1,29 @@
-import {
-    NextRequest
-} from "next/server";
+import { NextRequest } from "next/server";
 
+import { prisma } from "@/lib/prisma";
 
-import {
-    prisma
-} from "@/lib/prisma";
+import { successResponse } from "@/lib/api-response";
 
+import { ApiError } from "@/lib/api-error";
 
-import {
-    successResponse
-} from "@/lib/api-response";
-
-
-import {
-    ApiError
-} from "@/lib/api-error";
-
-
-import {
-    asyncHandler
-} from "@/lib/async-handler";
-
-
-
-
-
-
+import { asyncHandler } from "@/lib/async-handler";
 
 /**
  * @swagger
  * /api/auth/logout:
  *   post:
- *     summary: User logout
+ *     summary: User logout with HttpOnly refresh token cookie
  *     tags:
  *       - Authentication
  *
- *     requestBody:
- *       required: true
+ *     parameters:
  *
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *
- *             required:
- *               - refreshToken
- *
- *             properties:
- *
- *               refreshToken:
- *                 type: string
- *                 example: eyJhbGciOiJIUzI1NiIs...
+ *       - in: cookie
+ *         name: refreshToken
+ *         required: true
+ *         schema:
+ *           type: string
+ *         example: refresh_token_example
  *
  *
  *     responses:
@@ -59,116 +31,51 @@ import {
  *       200:
  *         description: Logout berhasil
  *
- *       400:
- *         description: Refresh token wajib diisi
- *
- *       404:
- *         description: Refresh token tidak ditemukan
+ *       401:
+ *         description: Refresh token tidak ditemukan atau tidak valid
  */
-export const POST = asyncHandler(
-async(
-    request:NextRequest
-)=>{
+export const POST = asyncHandler(async (request: NextRequest) => {
+  const refreshToken = request.cookies.get("refreshToken")?.value;
 
+  if (!refreshToken) {
+    throw new ApiError(
+      "Refresh token wajib diisi",
 
-    const body =
-        await request.json();
+      401,
 
-
-
-
-
-    const {
-        refreshToken
-    } =
-    body;
-
-
-
-
-
-
-
-    if(!refreshToken){
-
-        throw new ApiError(
-            "Refresh token wajib diisi",
-            400,
-            "MISSING_REFRESH_TOKEN"
-        );
-
-    }
-
-
-
-
-
-
-
-
-
-    const token =
-        await prisma.refreshToken.findUnique({
-
-            where:{
-
-                token:refreshToken
-
-            }
-
-        });
-
-
-
-
-
-
-
-
-
-    if(!token){
-
-        throw new ApiError(
-            "Refresh token tidak ditemukan",
-            404,
-            "REFRESH_TOKEN_NOT_FOUND"
-        );
-
-    }
-
-
-
-
-
-
-
-
-
-    await prisma.refreshToken.delete({
-
-        where:{
-
-            id:token.id
-
-        }
-
-    });
-
-
-
-
-
-
-
-
-
-    return successResponse(
-
-        "Logout berhasil",
-
-        null
-
+      "MISSING_REFRESH_TOKEN",
     );
+  }
 
+  const token = await prisma.refreshToken.findUnique({
+    where: {
+      token: refreshToken,
+    },
+  });
 
+  if (!token) {
+    throw new ApiError(
+      "Refresh token tidak ditemukan",
+
+      401,
+
+      "REFRESH_TOKEN_NOT_FOUND",
+    );
+  }
+
+  await prisma.refreshToken.delete({
+    where: {
+      id: token.id,
+    },
+  });
+
+  const response = successResponse(
+    "Logout berhasil",
+
+    null,
+  );
+
+  response.cookies.delete("refreshToken");
+
+  return response;
 });

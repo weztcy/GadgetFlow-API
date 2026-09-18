@@ -1,8 +1,15 @@
 export class ApiError extends Error {
-  statusCode: number;
-  code: string;
+  readonly statusCode: number;
 
-  constructor(message: string, statusCode: number, code: string = "API_ERROR") {
+  readonly code: string;
+
+  constructor(
+    message: string,
+
+    statusCode: number,
+
+    code: string = "API_ERROR",
+  ) {
     super(message);
 
     this.name = "ApiError";
@@ -12,5 +19,9 @@ export class ApiError extends Error {
     this.code = code;
 
     Object.setPrototypeOf(this, ApiError.prototype);
+
+    if (Error.captureStackTrace) {
+      Error.captureStackTrace(this, ApiError);
+    }
   }
 }

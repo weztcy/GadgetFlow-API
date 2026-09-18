@@ -2,13 +2,7 @@ import { NextRequest } from "next/server";
 
 import { verifyToken } from "@/lib/jwt";
 
-type AuthPayload = {
-  id: number;
-
-  email: string;
-
-  role: string;
-};
+import type { AuthPayload } from "@/middleware/role.middleware";
 
 export function authenticate(request: NextRequest): AuthPayload | null {
   const authHeader = request.headers.get("authorization");
@@ -17,7 +11,11 @@ export function authenticate(request: NextRequest): AuthPayload | null {
     return null;
   }
 
-  const [scheme, token] = authHeader.split(" ");
+  const parts = authHeader.trim().split(/\s+/);
+
+  const scheme = parts[0];
+
+  const token = parts[1];
 
   if (scheme !== "Bearer" || !token) {
     return null;
@@ -45,7 +43,7 @@ export function authenticate(request: NextRequest): AuthPayload | null {
 
       role: payload.role,
     };
-  } catch (error) {
+  } catch {
     return null;
   }
 }

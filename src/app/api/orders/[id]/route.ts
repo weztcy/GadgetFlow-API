@@ -1,35 +1,18 @@
-import {
-    NextRequest
-} from "next/server";
+import { NextRequest } from "next/server";
 
-import {
-    successResponse
-} from "@/lib/api-response";
+import { successResponse } from "@/lib/api-response";
 
-import {
-    ApiError
-} from "@/lib/api-error";
+import { ApiError } from "@/lib/api-error";
 
-import {
-    asyncHandler
-} from "@/lib/async-handler";
+import { asyncHandler } from "@/lib/async-handler";
 
-import {
-    getOrderById,
-    deleteOrder
-} from "@/services/order.service";
+import { getOrderById, deleteOrder } from "@/services/order.service";
 
-import {
-    authenticate
-} from "@/middleware/auth.middleware";
+import { authenticate } from "@/middleware/auth.middleware";
 
-import {
-    createAuditLog
-} from "@/services/audit.service";
+import { createAuditLog } from "@/services/audit.service";
 
-
-
-
+import { requireRole } from "@/middleware/role.middleware";
 
 /**
  * @swagger
@@ -72,98 +55,42 @@ import {
  *         description: Internal server error
  */
 export const GET = asyncHandler(
-async(
-    request:NextRequest,
+  async (
+    request: NextRequest,
 
-    context:{
-        params:Promise<{id:string}>
-    }
-)=>{
+    context: {
+      params: Promise<{ id: string }>;
+    },
+  ) => {
+    const payload = authenticate(request);
 
-
-    const payload =
-        authenticate(request);
-
-
-
-    if(!payload){
-
-        throw new ApiError(
-            "Unauthorized",
-            401,
-            "UNAUTHORIZED"
-        );
-
+    if (!payload) {
+      throw new ApiError("Unauthorized", 401, "UNAUTHORIZED");
     }
 
+    requireRole(payload, ["ADMIN"]);
 
+    const { id } = await context.params;
 
+    const orderId = Number(id);
 
-
-    const {
-        id
-    } =
-    await context.params;
-
-
-
-
-    const orderId =
-        Number(id);
-
-
-
-
-
-    if(isNaN(orderId)){
-
-
-        throw new ApiError(
-            "ID order tidak valid",
-            400,
-            "INVALID_ORDER_ID"
-        );
-
+    if (isNaN(orderId)) {
+      throw new ApiError("ID order tidak valid", 400, "INVALID_ORDER_ID");
     }
 
+    const order = await getOrderById(orderId);
 
-
-
-
-    const order =
-        await getOrderById(
-            orderId
-        );
-
-
-
-
-
-    if(!order){
-
-
-        throw new ApiError(
-            "Order tidak ditemukan",
-            404,
-            "ORDER_NOT_FOUND"
-        );
-
+    if (!order) {
+      throw new ApiError("Order tidak ditemukan", 404, "ORDER_NOT_FOUND");
     }
-
-
-
-
 
     return successResponse(
+      "Order ditemukan",
 
-        "Order ditemukan",
-
-        order
-
+      order,
     );
-
-
-});
+  },
+);
 
 /**
  * @swagger
@@ -206,136 +133,59 @@ async(
  *         description: Internal server error
  */
 export const DELETE = asyncHandler(
-async(
-    request:NextRequest,
+  async (
+    request: NextRequest,
 
-    context:{
-        params:Promise<{id:string}>
-    }
-)=>{
+    context: {
+      params: Promise<{ id: string }>;
+    },
+  ) => {
+    const payload = authenticate(request);
 
-
-    const payload =
-        authenticate(request);
-
-
-
-    if(!payload){
-
-        throw new ApiError(
-            "Unauthorized",
-            401,
-            "UNAUTHORIZED"
-        );
-
+    if (!payload) {
+      throw new ApiError("Unauthorized", 401, "UNAUTHORIZED");
     }
 
+    requireRole(payload, ["ADMIN"]);
 
+    const { id } = await context.params;
 
+    const orderId = Number(id);
 
-
-    const {
-        id
-    } =
-    await context.params;
-
-
-
-
-
-    const orderId =
-        Number(id);
-
-
-
-
-
-    if(isNaN(orderId)){
-
-
-        throw new ApiError(
-            "ID order tidak valid",
-            400,
-            "INVALID_ORDER_ID"
-        );
-
+    if (isNaN(orderId)) {
+      throw new ApiError("ID order tidak valid", 400, "INVALID_ORDER_ID");
     }
 
+    const oldOrder = await getOrderById(orderId);
 
-
-
-
-    const oldOrder =
-        await getOrderById(
-            orderId
-        );
-
-
-
-
-
-    if(!oldOrder){
-
-
-        throw new ApiError(
-            "Order tidak ditemukan",
-            404,
-            "ORDER_NOT_FOUND"
-        );
-
+    if (!oldOrder) {
+      throw new ApiError("Order tidak ditemukan", 404, "ORDER_NOT_FOUND");
     }
 
-
-
-
-
-    const order =
-        await deleteOrder(
-            orderId
-        );
-
-
-
-
-
-
-
+    const order = await deleteOrder(orderId);
 
     await createAuditLog({
+      userId: payload.id,
 
-        userId:
-        Number(payload.id),
+      action: "DELETE",
 
+      entity: "Order",
 
-        action:"DELETE",
+      entityId: orderId,
 
+      oldData: oldOrder,
 
-        entity:"Order",
+      newData: order,
 
+      ipAddress: request.headers.get("x-forwarded-for") ?? undefined,
 
-        entityId:orderId,
-
-
-        oldData:oldOrder,
-
-
-        newData:order
-
+      userAgent: request.headers.get("user-agent") ?? undefined,
     });
 
-
-
-
-
-
-
     return successResponse(
+      "Order berhasil dihapus",
 
-        "Order berhasil dihapus",
-
-        order
-
+      order,
     );
-
-
-});
+  },
+);

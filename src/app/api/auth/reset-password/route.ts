@@ -1,5 +1,7 @@
 import bcrypt from "bcrypt";
 
+import { NextRequest } from "next/server";
+
 import { successResponse } from "@/lib/api-response";
 
 import { ApiError } from "@/lib/api-error";
@@ -10,6 +12,8 @@ import {
   verifyResetToken,
   deleteResetToken,
 } from "@/services/password-reset.service";
+
+import { createAuditLog } from "@/services/audit.service";
 
 import { prisma } from "@/lib/prisma";
 
@@ -55,7 +59,7 @@ import { prisma } from "@/lib/prisma";
  *       401:
  *         description: Token reset password tidak valid atau expired
  */
-export const POST = asyncHandler(async (request: Request) => {
+export const POST = asyncHandler(async (request: NextRequest) => {
   const body = await request.json();
 
   const { token, password } = body;
@@ -90,7 +94,39 @@ export const POST = asyncHandler(async (request: Request) => {
     },
   });
 
+  // Revoke semua session lama
+
+  await prisma.refreshToken.deleteMany({
+    where: {
+      userId: resetToken.userId,
+    },
+  });
+
+  await createAuditLog({
+    userId: resetToken.userId,
+
+    action: "RESET_PASSWORD",
+
+    entity: "User",
+
+    entityId: resetToken.userId,
+
+    newData: {
+      action: "Password reset successfully",
+    },
+
+    ipAddress: request.headers.get("x-forwarded-for") ?? undefined,
+
+    userAgent: request.headers.get("user-agent") ?? undefined,
+  });
+
+  // Hapus token agar tidak dapat digunakan ulang
+
   await deleteResetToken(token);
 
-  return successResponse("Password berhasil direset", null);
+  return successResponse(
+    "Password berhasil direset",
+
+    null,
+  );
 });

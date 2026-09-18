@@ -1,6 +1,6 @@
 import { ApiError } from "@/lib/api-error";
 
-type AuthPayload = {
+export type AuthPayload = {
   id: number;
 
   email: string;
@@ -8,25 +8,16 @@ type AuthPayload = {
   role: string;
 };
 
-export function requireRole(payload: AuthPayload | null, roles: string[]) {
+export function requireRole(
+  payload: AuthPayload | null,
+  roles: readonly string[],
+) {
   if (!payload) {
-    throw new ApiError(
-      "Unauthorized",
-
-      401,
-
-      "UNAUTHORIZED",
-    );
+    throw new ApiError("Unauthorized", 401, "UNAUTHORIZED");
   }
 
   if (!roles.includes(payload.role)) {
-    throw new ApiError(
-      "Forbidden",
-
-      403,
-
-      "FORBIDDEN",
-    );
+    throw new ApiError("Forbidden", 403, "FORBIDDEN");
   }
 
   return true;

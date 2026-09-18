@@ -72,7 +72,6 @@ export const GET = asyncHandler(
     return successResponse("Product ditemukan", product);
   },
 );
-
 /**
  * @swagger
  * /api/products/{id}:
@@ -116,7 +115,7 @@ export const GET = asyncHandler(
  *                 type: string
  *                 format: binary
  *
-*        responses:
+ *     responses:
  *
  *       200:
  *         description: Product berhasil diupdate
@@ -141,6 +140,10 @@ export const PUT = asyncHandler(
     },
   ) => {
     const payload = authenticate(request);
+
+    if (!payload) {
+      throw new ApiError("Unauthorized", 401, "UNAUTHORIZED");
+    }
 
     requireRole(payload, ["ADMIN"]);
 
@@ -197,6 +200,8 @@ export const PUT = asyncHandler(
     );
 
     await createAuditLog({
+      userId: payload.id,
+
       action: "UPDATE",
 
       entity: "Product",
@@ -206,98 +211,14 @@ export const PUT = asyncHandler(
       oldData: oldProduct,
 
       newData: product,
+
+      ipAddress: request.headers.get("x-forwarded-for") ?? undefined,
+
+      userAgent: request.headers.get("user-agent") ?? undefined,
     });
 
     return successResponse(
       "Product berhasil diupdate",
-
-      product,
-    );
-  },
-);
-
-/**
- * @swagger
- * /api/products/{id}:
- *   delete:
- *     summary: Delete product (Soft Delete)
- *     tags:
- *       - Products
- *
- *     security:
- *       - bearerAuth: []
- *
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: integer
- *         example: 1
- *
- *     responses:
- *       200:
- *         description: Product berhasil dihapus
- *
- *       400:
- *         description: ID product tidak valid
- *
- *       401:
- *         description: Unauthorized
- *
- *       403:
- *         description: Forbidden
- *
- *       404:
- *         description: Product tidak ditemukan
- */
-export const DELETE = asyncHandler(
-  async (
-    request: NextRequest,
-    context: {
-      params: Promise<{ id: string }>;
-    },
-  ) => {
-    const payload = authenticate(request);
-
-    if (!payload) {
-      throw new ApiError("Unauthorized", 401, "UNAUTHORIZED");
-    }
-
-    requireRole(payload, ["ADMIN"]);
-
-    const { id } = await context.params;
-
-    const productId = Number(id);
-
-    if (isNaN(productId)) {
-      throw new ApiError("ID product tidak valid", 400, "INVALID_PRODUCT_ID");
-    }
-
-    const oldProduct = await getProductById(productId);
-
-    if (!oldProduct) {
-      throw new ApiError("Product tidak ditemukan", 404, "PRODUCT_NOT_FOUND");
-    }
-
-    const product = await deleteProduct(productId);
-
-    await createAuditLog({
-      userId: Number(payload.id),
-
-      action: "DELETE",
-
-      entity: "Product",
-
-      entityId: productId,
-
-      oldData: oldProduct,
-
-      newData: product,
-    });
-
-    return successResponse(
-      "Product berhasil dihapus",
 
       product,
     );

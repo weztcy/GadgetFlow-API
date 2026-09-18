@@ -4,26 +4,17 @@ import { successResponse } from "@/lib/api-response";
 
 import { ApiError } from "@/lib/api-error";
 
-import {
-    asyncHandler
-} from "@/lib/async-handler";
+import { asyncHandler } from "@/lib/async-handler";
 
-import {
-    createOrder,
-    getOrders
-} from "@/services/order.service";
+import { createOrder, getOrders } from "@/services/order.service";
 
-import {
-    createAuditLog
-} from "@/services/audit.service";
+import { createAuditLog } from "@/services/audit.service";
 
-import {
-    authenticate
-} from "@/middleware/auth.middleware";
+import { authenticate } from "@/middleware/auth.middleware";
 
-import {
-    orderSchema
-} from "@/validators/order.schema";
+import { requireRole } from "@/middleware/role.middleware";
+
+import { orderSchema } from "@/validators/order.schema";
 
 /**
  * @swagger
@@ -47,44 +38,22 @@ import {
  *       500:
  *         description: Internal server error
  */
-export const GET = asyncHandler(
-async(
-    request: NextRequest
-)=>{
+export const GET = asyncHandler(async (request: NextRequest) => {
+  const payload = authenticate(request);
 
+  if (!payload) {
+    throw new ApiError("Unauthorized", 401, "UNAUTHORIZED");
+  }
 
-    const payload =
-        authenticate(request);
+  requireRole(payload, ["ADMIN"]);
 
+  const orders = await getOrders();
 
+  return successResponse(
+    "Berhasil mengambil data order",
 
-    if(!payload){
-
-        throw new ApiError(
-            "Unauthorized",
-            401,
-            "UNAUTHORIZED"
-        );
-
-    }
-
-
-
-
-
-    const orders =
-        await getOrders();
-
-
-
-
-
-    return successResponse(
-        "Berhasil mengambil data order",
-        orders
-    );
-
-
+    orders,
+  );
 });
 
 /**
@@ -151,123 +120,44 @@ async(
  *       500:
  *         description: Internal server error
  */
-export const POST = asyncHandler(
-async(
-    request: NextRequest
-)=>{
+export const POST = asyncHandler(async (request: NextRequest) => {
+  const payload = authenticate(request);
 
+  if (!payload) {
+    throw new ApiError("Unauthorized", 401, "UNAUTHORIZED");
+  }
 
-    const payload =
-        authenticate(request);
+  requireRole(payload, ["ADMIN"]);
 
+  const body = await request.json();
 
+  const validation = orderSchema.safeParse(body);
 
+  if (!validation.success) {
+    throw validation.error;
+  }
 
+  const order = await createOrder(validation.data);
 
-    if(!payload){
+  await createAuditLog({
+    userId: payload.id,
 
-        throw new ApiError(
-            "Unauthorized",
-            401,
-            "UNAUTHORIZED"
-        );
+    action: "CREATE",
 
-    }
+    entity: "Order",
 
+    entityId: order.id,
 
+    newData: order,
 
+    ipAddress: request.headers.get("x-forwarded-for") ?? undefined,
 
+    userAgent: request.headers.get("user-agent") ?? undefined,
+  });
 
+  return successResponse(
+    "Order berhasil dibuat",
 
-
-    const body =
-        await request.json();
-
-
-
-
-
-
-
-
-    const validation =
-        orderSchema.safeParse(
-            body
-        );
-
-
-
-
-
-
-
-
-    if(!validation.success){
-
-        throw validation.error;
-
-    }
-
-
-
-
-
-
-
-
-    const order =
-        await createOrder(
-
-            validation.data
-
-        );
-
-
-
-
-
-
-
-
-
-    await createAuditLog({
-
-        userId:
-        Number(payload.id),
-
-
-        action:
-        "CREATE",
-
-
-        entity:
-        "Order",
-
-
-        entityId:
-        order.id,
-
-
-        newData:
-        order
-
-    });
-
-
-
-
-
-
-
-
-
-    return successResponse(
-
-        "Order berhasil dibuat",
-
-        order
-
-    );
-
-
+    order,
+  );
 });

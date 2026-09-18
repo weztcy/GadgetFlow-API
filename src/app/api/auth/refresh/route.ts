@@ -7,63 +7,52 @@ import { ApiError } from "@/lib/api-error";
 import { asyncHandler } from "@/lib/async-handler";
 
 import {
-  verifyRefreshToken,
+  rotateRefreshToken,
   generateAccessToken,
 } from "@/services/token.service";
+
+import { createAuditLog } from "@/services/audit.service";
 
 /**
  * @swagger
  * /api/auth/refresh:
  *   post:
- *     summary: Refresh access token
+ *     summary: Refresh access token with HttpOnly refresh token cookie rotation
  *     tags:
  *       - Authentication
  *
- *     requestBody:
- *       required: true
+ *     parameters:
  *
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *
- *             required:
- *               - refreshToken
- *
- *             properties:
- *
- *               refreshToken:
- *                 type: string
- *                 example: eyJhbGciOiJIUzI1NiIs...
+ *       - in: cookie
+ *         name: refreshToken
+ *         required: true
+ *         schema:
+ *           type: string
+ *         example: refresh_token_example
  *
  *
  *     responses:
  *
  *       200:
- *         description: Access token berhasil diperbarui
- *
- *       400:
- *         description: Refresh token wajib diisi
+ *         description: Token berhasil diperbarui
  *
  *       401:
  *         description: Refresh token tidak valid
  */
 export const POST = asyncHandler(async (request: NextRequest) => {
-  const body = await request.json();
-
-  const { refreshToken } = body;
+  const refreshToken = request.cookies.get("refreshToken")?.value;
 
   if (!refreshToken) {
     throw new ApiError(
       "Refresh token wajib diisi",
-      400,
+      401,
       "MISSING_REFRESH_TOKEN",
     );
   }
 
-  const user = await verifyRefreshToken(refreshToken);
+  const result = await rotateRefreshToken(refreshToken);
 
-  if (!user) {
+  if (!result) {
     throw new ApiError(
       "Refresh token tidak valid",
       401,
@@ -72,18 +61,52 @@ export const POST = asyncHandler(async (request: NextRequest) => {
   }
 
   const accessToken = generateAccessToken({
-    id: user.id,
+    id: result.user.id,
 
-    email: user.email,
+    email: result.user.email,
 
-    role: user.role,
+    role: result.user.role,
   });
 
-  return successResponse(
-    "Access token berhasil diperbarui",
+  await createAuditLog({
+    userId: result.user.id,
+
+    action: "REFRESH_TOKEN_ROTATION",
+
+    entity: "User",
+
+    entityId: result.user.id,
+
+    newData: {
+      action: "Refresh token rotated",
+    },
+  });
+
+  const response = successResponse(
+    "Token berhasil diperbarui",
 
     {
       accessToken,
     },
   );
+
+  response.cookies.set(
+    "refreshToken",
+
+    result.refreshToken,
+
+    {
+      httpOnly: true,
+
+      secure: process.env.NODE_ENV === "production",
+
+      sameSite: "strict",
+
+      maxAge: 60 * 60 * 24 * 7,
+
+      path: "/",
+    },
+  );
+
+  return response;
 });

@@ -18,7 +18,7 @@ import { requireRole } from "@/middleware/role.middleware";
 
 import { uploadProductImage } from "@/services/upload.service";
 
-export const GET = asyncHandler(async (request: Request) => {
+export const GET = asyncHandler(async (request: NextRequest) => {
   const { searchParams } = new URL(request.url);
 
   const page = Number(searchParams.get("page")) || 1;
@@ -127,17 +127,26 @@ export const GET = asyncHandler(async (request: Request) => {
 export const POST = asyncHandler(async (request: NextRequest) => {
   const payload = authenticate(request);
 
+  if (!payload) {
+    throw new ApiError("Unauthorized", 401, "UNAUTHORIZED");
+  }
+
   requireRole(payload, ["ADMIN"]);
 
   const formData = await request.formData();
 
-  const name = formData.get("name") as string;
+  const nameValue = formData.get("name");
 
-  const price = Number(formData.get("price"));
+  const name = typeof nameValue === "string" ? nameValue : undefined;
+
+  const priceValue = formData.get("price");
+
+  const price = typeof priceValue === "string" ? Number(priceValue) : undefined;
 
   const categoryIdValue = formData.get("categoryId");
 
-  const categoryId = categoryIdValue ? Number(categoryIdValue) : undefined;
+  const categoryId =
+    typeof categoryIdValue === "string" ? Number(categoryIdValue) : undefined;
 
   let image: string | undefined;
 
@@ -164,6 +173,8 @@ export const POST = asyncHandler(async (request: NextRequest) => {
   const product = await createProduct(validation.data);
 
   await createAuditLog({
+    userId: payload.id,
+
     action: "CREATE",
 
     entity: "Product",
@@ -171,6 +182,10 @@ export const POST = asyncHandler(async (request: NextRequest) => {
     entityId: product.id,
 
     newData: product,
+
+    ipAddress: request.headers.get("x-forwarded-for") ?? undefined,
+
+    userAgent: request.headers.get("user-agent") ?? undefined,
   });
 
   return successResponse(

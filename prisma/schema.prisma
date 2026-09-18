@@ -230,6 +230,12 @@ model AuditLog {
   newData Json?
 
 
+  ipAddress String?
+
+
+  userAgent String?
+
+
   createdAt DateTime @default(now())
 
 
@@ -243,6 +249,8 @@ model AuditLog {
   @@index([action])
 
   @@index([createdAt])
+
+  @@index([ipAddress])
 
 }
 

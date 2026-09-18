@@ -1,3 +1,5 @@
+import { NextRequest } from "next/server";
+
 import { successResponse } from "@/lib/api-response";
 
 import { ApiError } from "@/lib/api-error";
@@ -9,6 +11,10 @@ import { getUserByEmail } from "@/services/user.service";
 import { generateResetToken } from "@/services/password-reset.service";
 
 import { sendResetPasswordEmail } from "@/services/email.service";
+
+import { createAuditLog } from "@/services/audit.service";
+
+import { authRateLimit } from "@/middleware/rate-limit.middleware";
 
 /**
  * @swagger
@@ -47,7 +53,9 @@ import { sendResetPasswordEmail } from "@/services/email.service";
  *       404:
  *         description: Email tidak ditemukan
  */
-export const POST = asyncHandler(async (request: Request) => {
+export const POST = asyncHandler(async (request: NextRequest) => {
+  authRateLimit(request);
+
   const body = await request.json();
 
   const { email } = body;
@@ -70,6 +78,24 @@ export const POST = asyncHandler(async (request: Request) => {
     email: user.email,
 
     token,
+  });
+
+  await createAuditLog({
+    userId: user.id,
+
+    action: "REQUEST_RESET_PASSWORD",
+
+    entity: "User",
+
+    entityId: user.id,
+
+    newData: {
+      action: "Password reset link requested",
+    },
+
+    ipAddress: request.headers.get("x-forwarded-for") ?? undefined,
+
+    userAgent: request.headers.get("user-agent") ?? undefined,
   });
 
   return successResponse(

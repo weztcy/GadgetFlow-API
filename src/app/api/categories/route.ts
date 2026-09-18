@@ -1,46 +1,20 @@
-import {
-    NextRequest
-} from "next/server";
+import { NextRequest } from "next/server";
 
+import { successResponse } from "@/lib/api-response";
 
-import {
-    successResponse
-} from "@/lib/api-response";
+import { ApiError } from "@/lib/api-error";
 
+import { asyncHandler } from "@/lib/async-handler";
 
-import {
-    ApiError
-} from "@/lib/api-error";
+import { categorySchema } from "@/validators/category.schema";
 
+import { getCategories, createCategory } from "@/services/category.service";
 
-import {
-    asyncHandler
-} from "@/lib/async-handler";
+import { createAuditLog } from "@/services/audit.service";
 
+import { authenticate } from "@/middleware/auth.middleware";
 
-import {
-    categorySchema
-} from "@/validators/category.schema";
-
-
-import {
-    getCategories,
-    createCategory
-} from "@/services/category.service";
-
-
-import {
-    authenticate
-} from "@/middleware/auth.middleware";
-
-
-import {
-    requireRole
-} from "@/middleware/role.middleware";
-
-
-
-
+import { requireRole } from "@/middleware/role.middleware";
 
 /**
  * @swagger
@@ -59,24 +33,14 @@ import {
  *       500:
  *         description: Internal server error
  */
-export const GET = asyncHandler(
-async()=>{
+export const GET = asyncHandler(async () => {
+  const categories = await getCategories();
 
+  return successResponse(
+    "Berhasil mengambil data category",
 
-    const categories =
-        await getCategories();
-
-
-
-    return successResponse(
-
-        "Berhasil mengambil data category",
-
-        categories
-
-    );
-
-
+    categories,
+  );
 });
 
 /**
@@ -126,79 +90,50 @@ async()=>{
  *       500:
  *         description: Internal server error
  */
-export const POST = asyncHandler(
-async(
-    request:NextRequest
-)=>{
+export const POST = asyncHandler(async (request: NextRequest) => {
+  const payload = authenticate(request);
 
+  if (!payload) {
+    throw new ApiError(
+      "Unauthorized",
 
-    const payload =
-        authenticate(request);
+      401,
 
-
-
-    requireRole(
-
-        payload,
-
-        [
-            "ADMIN"
-        ]
-
+      "UNAUTHORIZED",
     );
+  }
 
+  requireRole(
+    payload,
 
+    ["ADMIN"],
+  );
 
+  const body = await request.json();
 
+  const validation = categorySchema.safeParse(body);
 
-    const body =
-        await request.json();
-
-
-
-
-
-    const validation =
-        categorySchema.safeParse(
-            body
-        );
-
-
-
-
-
-    if(!validation.success){
-
+  if (!validation.success) {
     throw validation.error;
+  }
 
-}
+  const category = await createCategory(validation.data);
 
+  await createAuditLog({
+    userId: payload.id,
 
+    action: "CREATE",
 
+    entity: "Category",
 
+    entityId: category.id,
 
+    newData: category,
+  });
 
+  return successResponse(
+    "Category berhasil dibuat",
 
-    const category =
-        await createCategory(
-
-            validation.data
-
-        );
-
-
-
-
-
-
-
-    return successResponse(
-
-        "Category berhasil dibuat",
-
-        category
-
-    );
-
-
+    category,
+  );
 });
