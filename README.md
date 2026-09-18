@@ -233,4 +233,6 @@ This project was developed to:
 
 This project is maintained for portfolio, reference, and development purposes.
 
+---
+
 **GadgetFlow API — Backend REST API for Smartphone Product & Order Management System**
