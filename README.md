@@ -2,21 +2,33 @@
 
 **GadgetFlow API** is a backend REST API developed using **Next.js** to support data management and backend operations for the **GadgetFlow - Smartphone Product & Order Management System**.
 
-The API provides functionality for smartphone product management, category management, customer order processing, user authentication, and administrative operations through structured REST API endpoints.
+The API provides functionality for smartphone product management, category management, customer order processing, user authentication, authorization, audit tracking, and administrative operations through structured REST API endpoints.
+
+---
 
 ## 📱 About the Project
 
-GadgetFlow API was developed as the backend foundation and service layer for **GadgetFlow - Smartphone Product & Order Management System** using **Next.js** as the backend development framework.
+GadgetFlow API was developed as the backend foundation and service layer for the **GadgetFlow - Smartphone Product & Order Management System** using **Next.js** as the backend framework.
 
-The API manages core backend operations and application services related to smartphone retail, including smartphone product catalog management, product category organization, customer order processing, user authentication and authorization, administrative operations, database relationship management, and system activity tracking.
+The API manages core backend operations for smartphone retail systems, including product catalog management, category organization, customer order processing, user authentication, authorization management, database relationship handling, and system activity tracking.
 
-The API is designed to provide structured communication between frontend applications and backend services through RESTful API architecture using JSON based data exchange.
+The API is designed using a RESTful API architecture with JSON-based communication between frontend applications and backend services.
 
-GadgetFlow API implements a professional backend architecture using separated layers for API Routes, Service Layer, Validation Layer, Middleware, and Database Layer to improve maintainability, scalability, and development efficiency.
+GadgetFlow API applies a professional backend architecture using separated layers:
 
-The API also includes authentication and security mechanisms such as JWT based authentication, role based access control, password encryption, refresh token management, and password recovery workflows.
+- API Routes Layer
+- Service Layer
+- Validation Layer
+- Middleware Layer
+- Database Layer
 
-## ✨ Features
+This architecture improves maintainability, scalability, code organization, and development efficiency.
+
+The API also implements security mechanisms including JWT authentication, role-based access control, password encryption, refresh token management, password recovery workflow, and audit logging.
+
+---
+
+# ✨ Features
 
 Key features and implementations include:
 
@@ -26,24 +38,34 @@ Key features and implementations include:
 * Order and order detail processing
 * User registration and authentication
 * JWT based authentication system
-* Refresh token implementation
+* Access token generation
+* Refresh token management
+* Refresh token rotation mechanism
+* HttpOnly cookie based refresh token storage
 * Role based access control (USER & ADMIN)
 * Protected API endpoints
 * Password encryption using bcrypt
-* Forgot password and reset password workflow
+* Forgot password workflow
+* Reset password workflow
 * Email notification system
 * Product image upload handling
-* API request validation using Zod
+* Request validation using Zod
 * Standardized API response format
 * Centralized error handling
-* Database relationship management using Prisma ORM
+* Prisma ORM database management
+* MySQL relational database support
 * Audit log activity tracking
 * Pagination support
-* Nested category product API
+* Product search functionality
+* Product price filtering
+* Product price sorting
+* Soft delete implementation
+* Nested relational API response
 * Swagger OpenAPI documentation
-* Frontend and backend data communication support
 
-## 📱 Product Management
+---
+
+# 📱 Product Management
 
 GadgetFlow API provides complete CRUD operations for smartphone products.
 
@@ -53,21 +75,27 @@ Supported operations:
 * Retrieve product lists
 * Retrieve product details
 * Update product information
-* Delete products
+* Soft delete products
 * Upload product images
-* Filter products by category
+* Search products by name
+* Filter products based on price range
+* Sort products by price
 * Pagination support
 
 Product information includes:
 
 * Product name
-* Price
-* Description
+* Product price
 * Product image
 * Category information
 * Product metadata
+* Deleted timestamp tracking
 
-## 📂 Category Management
+The product deletion system uses **soft delete implementation** through `deletedAt` timestamp, allowing deleted records to remain available for database consistency and future management purposes.
+
+---
+
+# 📂 Category Management
 
 The API manages smartphone product categories with relational database support.
 
@@ -75,12 +103,16 @@ Features:
 
 * Create categories
 * Retrieve categories
+* Retrieve category details
 * Update categories
 * Delete categories
-* Retrieve products based on category
-* Nested category product relationships
+* Retrieve products based on category relationships
 
-## 🛒 Order Management
+Category deletion includes validation protection to prevent deletion when the category is still associated with existing products.
+
+---
+
+# 🛒 Order Management
 
 GadgetFlow API provides order processing functionality for customer transactions.
 
@@ -90,97 +122,220 @@ Order features include:
 * Manage order items
 * Connect orders with smartphone products
 * Retrieve order details
-* Track transaction relationships
+* Delete orders
+* Maintain transaction relationships
 
-The order system uses relational data structures between:
+The order system uses relational database structures between:
 
-* Users
 * Orders
-* Order Details
+* Order Items
 * Products
 
-## 🔐 Authentication & Authorization
+Order creation uses Prisma database transaction handling to maintain data consistency during multi-step operations.
 
-The API implements a secure authentication system using JWT based authentication.
+---
+
+# 🔐 Authentication & Authorization
+
+The API implements a secure authentication system using JWT-based authentication.
 
 Security features:
 
 * User registration
 * Login authentication
-* JWT access token
-* Refresh token mechanism
+* JWT access token generation
+* Refresh token generation
+* Refresh token rotation
+* HttpOnly cookie refresh token storage
 * Protected API routes
-* Role based access control
+* Role based authorization middleware
 * Password hashing using bcrypt
+* Session revocation during password reset
 
 Supported roles:
 
 * USER
 * ADMIN
 
-Sensitive operations such as product management and administration are protected using authorization middleware.
+Administrative operations are protected using authorization middleware.
 
-## 📧 Email & Password Recovery
+Examples of protected operations:
 
-GadgetFlow API provides email based account recovery functionality.
+* Product management
+* Category management
+* Order management
+
+---
+
+# 📧 Email & Password Recovery
+
+GadgetFlow API provides email-based account recovery functionality.
 
 Implemented features:
 
 * Registration welcome email
 * Forgot password request
 * Password reset token generation
-* Reset password validation
+* Token expiration validation
+* Password reset validation
 * Password update process
+* Reset token deletion after successful usage
 
-Email service is implemented using Nodemailer.
+Email functionality is implemented using **Nodemailer**.
 
-## 🗄️ Database Management
+Password reset tokens are securely managed with expiration handling to prevent reuse of expired tokens.
 
-The API uses Prisma ORM for database interaction and relational data management.
+---
 
-Database features include:
+# 🗄️ Database Management
+
+The API uses **Prisma ORM** for database interaction and relational data management.
+
+Database entities include:
+
+* User
+* Product
+* Category
+* Order
+* Order Item
+* Refresh Token
+* Password Reset Token
+* Audit Log
+
+Database features:
 
 * User management
-* Product management
+* Product catalog management
 * Category relationships
 * Order relationships
-* Order detail management
 * Refresh token storage
 * Password reset token storage
-* Audit activity logging
+* User activity tracking
 
-Database design follows relational database principles to ensure consistency and scalability.
+The database design follows relational database principles to maintain data consistency and scalability.
 
-## 📝 Validation & Error Handling
+---
 
-The API implements structured request validation and error management.
+# 📝 Validation & Error Handling
+
+The API implements structured request validation and centralized error handling.
 
 Features:
 
 * Request validation using Zod
-* Centralized error handling
+* Authentication validation
+* Input sanitization
+* Centralized API error handling
 * Standard API response format
 * Consistent HTTP status handling
-* Secure input processing
 
-## 📊 Audit Log System
+Validation schemas include:
+
+* User registration validation
+* User login validation
+* Product validation
+* Category validation
+* Order validation
+
+---
+
+# 📊 Audit Log System
 
 GadgetFlow API includes activity tracking through audit logs.
 
 Tracked activities include:
 
-* User activities
-* Administrative actions
-* Data modification records
+* User registration
+* Login activity
+* Logout activity
+* Refresh token rotation
+* Password reset activity
+* Product creation
+* Product update
+* Product deletion
+* Category modification
+* Order creation
+* Order deletion
 
-Audit logging helps maintain system transparency and operational monitoring.
+Audit logs store:
 
-## 🛠️ Technologies
+* User information
+* Action type
+* Entity information
+* Entity ID
+* Previous data
+* New data
+* IP address
+* User agent
+
+The audit system helps maintain transparency and operational monitoring.
+
+---
+
+# 🏗️ Backend Architecture
+
+GadgetFlow API applies a layered backend architecture:
+
+API Routes
+|
+↓
+Service Layer
+|
+↓
+Validation Layer
+|
+↓
+Middleware Layer
+|
+↓
+Prisma ORM
+|
+↓
+MySQL Database
+
+Responsibilities:
+
+**API Routes**
+- Handle HTTP requests
+- Manage API responses
+- Connect frontend communication
+
+**Service Layer**
+- Handle business logic
+- Manage database operations
+
+**Validation Layer**
+- Validate incoming request data
+
+**Middleware Layer**
+- Handle authentication and authorization
+
+**Database Layer**
+- Manage relational data using Prisma ORM
+
+---
+
+# 🛡️ API Security
+
+Implemented security mechanisms:
+
+* JWT based authentication
+* Role based access control
+* Password hashing with bcrypt
+* Secure refresh token storage
+* HttpOnly cookies
+* Refresh token rotation
+* Token expiration handling
+* Protected administrative endpoints
+* Centralized error management
+
+---
+
+# 🛠️ Technologies
 
 The main technologies and platforms used in this project are:
 
 * Next.js
-* JavaScript
 * TypeScript
 * Node.js
 * Prisma ORM
@@ -194,7 +349,9 @@ The main technologies and platforms used in this project are:
 * Swagger OpenAPI
 * Vercel
 
-## 📚 API Documentation
+---
+
+# 📚 API Documentation
 
 GadgetFlow API provides API documentation using Swagger OpenAPI.
 
@@ -204,9 +361,6 @@ Documentation includes:
 * Product endpoints
 * Category endpoints
 * Order endpoints
-* Profile endpoints
-* Admin endpoints
-
 
 Swagger allows developers to:
 
@@ -215,24 +369,29 @@ Swagger allows developers to:
 * Understand request and response formats
 * Integrate frontend applications efficiently
 
+---
 
-## 🎯 Project Objectives
+# 🎯 Project Objectives
 
 This project was developed to:
 
 * Build a structured backend API for smartphone product management
-* Provide a centralized API service for product and order operations
+* Provide centralized backend services for product and order operations
 * Implement secure authentication and authorization mechanisms
-* Create reusable REST API services for frontend applications
-* Apply professional backend development practices
-* Implement database relationship management using Prisma ORM
-* Provide documented and maintainable API endpoints
-* Develop a scalable backend foundation for future e commerce features
+* Apply professional backend architecture practices
+* Implement relational database management using Prisma ORM
+* Develop reusable REST API services
+* Provide documented API endpoints using Swagger
+* Create a scalable backend foundation for future e-commerce features
 
-## 📜 License
+---
+
+# 📜 License
 
 This project is maintained for portfolio, reference, and development purposes.
 
 ---
 
 **GadgetFlow API — Backend REST API for Smartphone Product & Order Management System**
+
+```
