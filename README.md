@@ -276,23 +276,18 @@ The audit system helps maintain transparency and operational monitoring.
 
 GadgetFlow API applies a layered backend architecture:
 
+```text
 API Routes
-|
-↓
+    ↓
 Service Layer
-|
-↓
+    ↓
 Validation Layer
-|
-↓
+    ↓
 Middleware Layer
-|
-↓
+    ↓
 Prisma ORM
-|
-↓
+    ↓
 MySQL Database
-
 Responsibilities:
 
 **API Routes**
