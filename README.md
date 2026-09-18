@@ -25,9 +25,9 @@ Key features and implementations include:
 * Customer order management
 * Order and order detail processing
 * User registration and authentication
-* JWT*based authentication system
+* JWT based authentication system
 * Refresh token implementation
-* Role*based access control (USER & ADMIN)
+* Role based access control (USER & ADMIN)
 * Protected API endpoints
 * Password encryption using bcrypt
 * Forgot password and reset password workflow
