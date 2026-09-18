@@ -281,26 +281,26 @@ MySQL Database
 
 Responsibilities:
 
-### API Routes
+API Routes
 
 * Handle HTTP requests
 * Manage API responses
 * Connect frontend communication
 
-### Service Layer
+Service Layer
 
 * Handle business logic
 * Manage database operations
 
-### Validation Layer
+Validation Layer
 
 * Validate incoming request data
 
-### Middleware Layer
+Middleware Layer
 
 * Handle authentication and authorization
 
-### Database Layer
+Database Layer
 
 * Manage relational data using Prisma ORM
 
