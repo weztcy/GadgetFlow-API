@@ -69,6 +69,9 @@ import {
  *       200:
  *         description: Login berhasil
  *
+ *       400:
+ *         description: Email dan password wajib diisi
+ *
  *       401:
  *         description: Email atau password salah
  */

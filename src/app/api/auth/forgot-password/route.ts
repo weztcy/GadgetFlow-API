@@ -1,34 +1,14 @@
-import {
-    successResponse
-} from "@/lib/api-response";
+import { successResponse } from "@/lib/api-response";
 
+import { ApiError } from "@/lib/api-error";
 
-import {
-    ApiError
-} from "@/lib/api-error";
+import { asyncHandler } from "@/lib/async-handler";
 
+import { getUserByEmail } from "@/services/user.service";
 
-import {
-    asyncHandler
-} from "@/lib/async-handler";
+import { generateResetToken } from "@/services/password-reset.service";
 
-
-import {
-    getUserByEmail
-} from "@/services/user.service";
-
-
-import {
-    generateResetToken
-} from "@/services/password-reset.service";
-
-
-import {
-    sendResetPasswordEmail
-} from "@/services/email.service";
-
-
-
+import { sendResetPasswordEmail } from "@/services/email.service";
 
 /**
  * @swagger
@@ -67,119 +47,34 @@ import {
  *       404:
  *         description: Email tidak ditemukan
  */
-export const POST = asyncHandler(
-async(
-    request:Request
-)=>{
+export const POST = asyncHandler(async (request: Request) => {
+  const body = await request.json();
 
+  const { email } = body;
 
-    const body =
-        await request.json();
+  if (!email) {
+    throw new ApiError("Email wajib diisi", 400, "MISSING_EMAIL");
+  }
 
+  const user = await getUserByEmail(email);
 
+  if (!user) {
+    throw new ApiError("Email tidak ditemukan", 404, "EMAIL_NOT_FOUND");
+  }
 
+  const token = await generateResetToken(user.id);
 
+  await sendResetPasswordEmail({
+    name: user.name,
 
-    const {
-        email
-    } =
-    body;
+    email: user.email,
 
+    token,
+  });
 
+  return successResponse(
+    "Link reset password telah dikirim",
 
-
-
-
-
-    if(!email){
-
-        throw new ApiError(
-            "Email wajib diisi",
-            400,
-            "MISSING_EMAIL"
-        );
-
-    }
-
-
-
-
-
-
-
-
-
-    const user =
-        await getUserByEmail(
-            email
-        );
-
-
-
-
-
-
-
-
-
-    if(!user){
-
-        throw new ApiError(
-            "Email tidak ditemukan",
-            404,
-            "EMAIL_NOT_FOUND"
-        );
-
-    }
-
-
-
-
-
-
-
-
-
-    const token =
-        await generateResetToken(
-
-            user.id
-
-        );
-
-
-
-
-
-
-
-
-
-    await sendResetPasswordEmail({
-
-        name:user.name,
-
-        email:user.email,
-
-        token
-
-    });
-
-
-
-
-
-
-
-
-
-    return successResponse(
-
-        "Link reset password telah dikirim",
-
-        null
-
-    );
-
-
+    null,
+  );
 });

@@ -1,34 +1,17 @@
 import bcrypt from "bcrypt";
 
+import { successResponse } from "@/lib/api-response";
+
+import { ApiError } from "@/lib/api-error";
+
+import { asyncHandler } from "@/lib/async-handler";
 
 import {
-    successResponse
-} from "@/lib/api-response";
-
-
-import {
-    ApiError
-} from "@/lib/api-error";
-
-
-import {
-    asyncHandler
-} from "@/lib/async-handler";
-
-
-import {
-    verifyResetToken,
-    deleteResetToken
+  verifyResetToken,
+  deleteResetToken,
 } from "@/services/password-reset.service";
 
-
-import {
-    prisma
-} from "@/lib/prisma";
-
-
-
-
+import { prisma } from "@/lib/prisma";
 
 /**
  * @swagger
@@ -72,123 +55,42 @@ import {
  *       401:
  *         description: Token reset password tidak valid atau expired
  */
-export const POST = asyncHandler(
-async(
-    request:Request
-)=>{
+export const POST = asyncHandler(async (request: Request) => {
+  const body = await request.json();
 
+  const { token, password } = body;
 
-    const body =
-        await request.json();
-
-
-
-
-    const {
-        token,
-        password
-    } = body;
-
-
-
-
-
-
-    if(
-        !token ||
-        !password
-    ){
-
-        throw new ApiError(
-            "Token dan password wajib diisi",
-            400,
-            "MISSING_RESET_DATA"
-        );
-
-    }
-
-
-
-
-
-
-
-
-    const resetToken =
-        await verifyResetToken(
-            token
-        );
-
-
-
-
-
-
-
-    if(!resetToken){
-
-        throw new ApiError(
-            "Token reset password tidak valid atau expired",
-            401,
-            "INVALID_RESET_TOKEN"
-        );
-
-    }
-
-
-
-
-
-
-
-
-    const hashedPassword =
-        await bcrypt.hash(
-            password,
-            10
-        );
-
-
-
-
-
-
-
-
-    await prisma.user.update({
-
-        where:{
-            id:resetToken.userId
-        },
-
-        data:{
-            password:hashedPassword
-        }
-
-    });
-
-
-
-
-
-
-
-
-    await deleteResetToken(
-        token
+  if (!token || !password) {
+    throw new ApiError(
+      "Token dan password wajib diisi",
+      400,
+      "MISSING_RESET_DATA",
     );
+  }
 
+  const resetToken = await verifyResetToken(token);
 
-
-
-
-
-
-
-    return successResponse(
-        "Password berhasil direset",
-        null
+  if (!resetToken) {
+    throw new ApiError(
+      "Token reset password tidak valid atau expired",
+      401,
+      "INVALID_RESET_TOKEN",
     );
+  }
 
+  const hashedPassword = await bcrypt.hash(password, 10);
 
+  await prisma.user.update({
+    where: {
+      id: resetToken.userId,
+    },
+
+    data: {
+      password: hashedPassword,
+    },
+  });
+
+  await deleteResetToken(token);
+
+  return successResponse("Password berhasil direset", null);
 });
