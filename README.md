@@ -62,33 +62,38 @@ Key features and implementations include:
 * Swagger OpenAPI documentation
 
 
+Benar, untuk bagian tengah README sebaiknya **jangan menambahkan section baru** seperti `API Capabilities Summary` karena itu mengubah struktur dokumentasi. Fokusnya hanya merapikan isi yang sudah ada.
+
+Berikut versi **replacement langsung** untuk bagian tersebut. Struktur tetap sama, hanya dirapikan dan digabungkan:
+
+````md
 ## 📱 Product Management
 
-GadgetFlow API provides complete CRUD operations for smartphone products.
+GadgetFlow API provides complete CRUD operations for smartphone product management.
 
 Supported operations:
 
-* Create smartphone products
-* Retrieve product lists
-* Retrieve product details
-* Update product information
-* Soft delete products
-* Upload product images
-* Search products by name
-* Filter products based on price range
-* Sort products by price
-* Pagination support
+- Create smartphone products
+- Retrieve product lists
+- Retrieve product details
+- Update product information
+- Soft delete products
+- Upload product images
+- Search products by name
+- Filter products based on price range
+- Sort products by price
+- Pagination support
 
 Product information includes:
 
-* Product name
-* Product price
-* Product image
-* Category information
-* Product metadata
-* Deleted timestamp tracking
+- Product name
+- Product price
+- Product image
+- Category information
+- Product metadata
+- Deleted timestamp tracking
 
-The product deletion system uses **soft delete implementation** through `deletedAt` timestamp, allowing deleted records to remain available for database consistency and future management purposes.
+The product deletion system implements a **soft delete mechanism** using the `deletedAt` timestamp, allowing deleted records to remain available for database consistency and future management.
 
 
 ## 📂 Category Management
@@ -97,12 +102,12 @@ The API manages smartphone product categories with relational database support.
 
 Features:
 
-* Create categories
-* Retrieve categories
-* Retrieve category details
-* Update categories
-* Delete categories
-* Retrieve products based on category relationships
+- Create categories
+- Retrieve categories
+- Retrieve category details
+- Update categories
+- Delete categories
+- Retrieve products based on category relationships
 
 Category deletion includes validation protection to prevent deletion when the category is still associated with existing products.
 
@@ -113,66 +118,67 @@ GadgetFlow API provides order processing functionality for customer transactions
 
 Order features include:
 
-* Create customer orders
-* Manage order items
-* Connect orders with smartphone products
-* Retrieve order details
-* Delete orders
-* Maintain transaction relationships
+- Create customer orders
+- Manage order items
+- Connect orders with smartphone products
+- Retrieve order details
+- Delete orders
+- Maintain transaction relationships
 
 The order system uses relational database structures between:
 
-* Orders
-* Order Items
-* Products
+- Orders
+- Order Items
+- Products
 
 Order creation uses Prisma database transaction handling to maintain data consistency during multi-step operations.
 
 
-## 🔐 Authentication & Authorization
+## 🔐 Authentication & Security
 
-The API implements a secure authentication system using JWT-based authentication.
+GadgetFlow API implements a secure authentication and authorization system using JWT-based security mechanisms.
 
-Security features:
+Authentication and security features:
 
-* User registration
-* Login authentication
-* JWT access token generation
-* Refresh token generation
-* Refresh token rotation
-* HttpOnly cookie refresh token storage
-* Protected API routes
-* Role based authorization middleware
-* Password hashing using bcrypt
-* Session revocation during password reset
+- User registration
+- Login authentication
+- JWT access token generation
+- Refresh token generation
+- Refresh token rotation
+- HttpOnly cookie refresh token storage
+- Protected API routes
+- Role-based authorization middleware
+- Password hashing using bcrypt
+- Token expiration handling
+- Session revocation during password reset
 
 Supported roles:
 
-* USER
-* ADMIN
+- USER
+- ADMIN
 
 Administrative operations are protected using authorization middleware.
 
-Examples of protected operations:
+Protected operations include:
 
-* Product management
-* Category management
-* Order management
+- Product management
+- Category management
+- Order management
 
 
-## 📧 Email & Password Recovery
+## 📧 Email & Account Recovery
 
 GadgetFlow API provides email-based account recovery functionality.
 
 Implemented features:
 
-* Registration welcome email
-* Forgot password request
-* Password reset token generation
-* Token expiration validation
-* Password reset validation
-* Password update process
-* Reset token deletion after successful usage
+- Registration welcome email
+- Forgot password request
+- Password reset token generation
+- Token expiration validation
+- Password reset validation
+- Password update process
+- Reset token deletion after successful usage
 
 Email functionality is implemented using **Nodemailer**.
 
@@ -185,24 +191,24 @@ The API uses **Prisma ORM** for database interaction and relational data managem
 
 Database entities include:
 
-* User
-* Product
-* Category
-* Order
-* Order Item
-* Refresh Token
-* Password Reset Token
-* Audit Log
+- User
+- Product
+- Category
+- Order
+- Order Item
+- Refresh Token
+- Password Reset Token
+- Audit Log
 
 Database features:
 
-* User management
-* Product catalog management
-* Category relationships
-* Order relationships
-* Refresh token storage
-* Password reset token storage
-* User activity tracking
+- User management
+- Product catalog management
+- Category relationships
+- Order relationships
+- Refresh token storage
+- Password reset token storage
+- User activity tracking
 
 The database design follows relational database principles to maintain data consistency and scalability.
 
@@ -213,52 +219,52 @@ The API implements structured request validation and centralized error handling.
 
 Features:
 
-* Request validation using Zod
-* Authentication validation
-* Input sanitization
-* Centralized API error handling
-* Standard API response format
-* Consistent HTTP status handling
+- Request validation using Zod
+- Authentication validation
+- Input sanitization
+- Centralized API error handling
+- Standard API response format
+- Consistent HTTP status handling
 
 Validation schemas include:
 
-* User registration validation
-* User login validation
-* Product validation
-* Category validation
-* Order validation
+- User registration validation
+- User login validation
+- Product validation
+- Category validation
+- Order validation
 
 
-## 📊 Audit Log System
+## 📊 Audit Logging
 
 GadgetFlow API includes activity tracking through audit logs.
 
 Tracked activities include:
 
-* User registration
-* Login activity
-* Logout activity
-* Refresh token rotation
-* Password reset activity
-* Product creation
-* Product update
-* Product deletion
-* Category modification
-* Order creation
-* Order deletion
+- User registration
+- Login activity
+- Logout activity
+- Refresh token rotation
+- Password reset activity
+- Product creation
+- Product update
+- Product deletion
+- Category modification
+- Order creation
+- Order deletion
 
 Audit logs store:
 
-* User information
-* Action type
-* Entity information
-* Entity ID
-* Previous data
-* New data
-* IP address
-* User agent
+- User information
+- Action type
+- Entity information
+- Entity ID
+- Previous data
+- New data
+- IP address
+- User agent
 
-The audit system helps maintain transparency and operational monitoring.
+The audit system helps maintain transparency, traceability, and operational monitoring.
 
 
 ## 🏗️ Backend Architecture
@@ -267,53 +273,44 @@ GadgetFlow API applies a layered backend architecture:
 
 ```text
 API Routes
-    ↓
+    →
 Service Layer
-    ↓
+    →
 Validation Layer
-    ↓
+    →
 Middleware Layer
-    ↓
+    →
 Prisma ORM
-    ↓
+    →
 MySQL Database
-```
+````
 
 Responsibilities:
 
-**API Routes**
-- Handle HTTP requests
-- Manage API responses
-- Connect frontend communication
+### API Routes
 
-**Service Layer**
-- Handle business logic
-- Manage database operations
+* Handle HTTP requests
+* Manage API responses
+* Connect frontend communication
 
-**Validation Layer**
-- Validate incoming request data
+### Service Layer
 
-**Middleware Layer**
-- Handle authentication and authorization
+* Handle business logic
+* Manage database operations
 
-**Database Layer**
-- Manage relational data using Prisma ORM
+### Validation Layer
 
+* Validate incoming request data
 
-## 🛡️ API Security
+### Middleware Layer
 
-Implemented security mechanisms:
+* Handle authentication and authorization
 
-* JWT based authentication
-* Role based access control
-* Password hashing with bcrypt
-* Secure refresh token storage
-* HttpOnly cookies
-* Refresh token rotation
-* Token expiration handling
-* Protected administrative endpoints
-* Centralized error management
+### Database Layer
 
+* Manage relational data using Prisma ORM
+
+```
 
 ## 🛠️ Technologies
 
