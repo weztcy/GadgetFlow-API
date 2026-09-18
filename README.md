@@ -299,24 +299,6 @@ Middleware Layer
 Database Layer
 * Manage relational data using Prisma ORM
 
-## 🛠️ Technologies
-
-The main technologies and platforms used in this project are:
-
-* Next.js
-* TypeScript
-* Node.js
-* Prisma ORM
-* MySQL
-* JWT
-* bcrypt
-* Zod
-* Nodemailer
-* REST API
-* JSON
-* Swagger OpenAPI
-* Vercel
-
 
 ## 📚 API Documentation
 
@@ -335,6 +317,25 @@ Swagger allows developers to:
 * Test API requests
 * Understand request and response formats
 * Integrate frontend applications efficiently
+
+
+## 🛠️ Technologies
+
+The main technologies and platforms used in this project are:
+
+* Next.js
+* TypeScript
+* Node.js
+* Prisma ORM
+* MySQL
+* JWT
+* bcrypt
+* Zod
+* Nodemailer
+* REST API
+* JSON
+* Swagger OpenAPI
+* Vercel
 
 
 ## 🎯 Project Objectives
