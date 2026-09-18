@@ -2,67 +2,50 @@ import { NextRequest } from "next/server";
 
 import { verifyToken } from "@/lib/jwt";
 
+type AuthPayload = {
+  id: number;
 
-export function authenticate(request: NextRequest) {
+  email: string;
 
-    const authHeader =
-        request.headers.get("authorization");
+  role: string;
+};
 
+export function authenticate(request: NextRequest): AuthPayload | null {
+  const authHeader = request.headers.get("authorization");
 
-    console.log(
-        "AUTH HEADER:",
-        authHeader
-    );
+  if (!authHeader) {
+    return null;
+  }
 
+  const [scheme, token] = authHeader.split(" ");
 
-    if (!authHeader) {
-        return null;
+  if (scheme !== "Bearer" || !token) {
+    return null;
+  }
+
+  try {
+    const payload = verifyToken(token);
+
+    if (typeof payload !== "object" || payload === null) {
+      return null;
     }
 
-
-    const token =
-        authHeader.split(" ")[1];
-
-
-    console.log(
-        "TOKEN:",
-        token
-    );
-
-
-    if (!token) {
-        return null;
+    if (
+      typeof payload.id !== "number" ||
+      typeof payload.email !== "string" ||
+      typeof payload.role !== "string"
+    ) {
+      return null;
     }
 
+    return {
+      id: payload.id,
 
-    try {
+      email: payload.email,
 
-        const payload =
-            verifyToken(token) as {
-                id:number;
-                email:string;
-                role:string;
-            };
-
-
-        console.log(
-            "PAYLOAD:",
-            payload
-        );
-
-
-        return payload;
-
-
-    } catch(error) {
-
-        console.log(
-            "JWT ERROR:",
-            error
-        );
-
-
-        return null;
-
-    }
+      role: payload.role,
+    };
+  } catch (error) {
+    return null;
+  }
 }

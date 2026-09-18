@@ -1,40 +1,33 @@
-import {
-    ApiError
-} from "@/lib/api-error";
+import { ApiError } from "@/lib/api-error";
 
+type AuthPayload = {
+  id: number;
 
+  email: string;
 
-export function requireRole(
-    payload:any,
-    roles:string[]
-){
+  role: string;
+};
 
-    if(!payload){
+export function requireRole(payload: AuthPayload | null, roles: string[]) {
+  if (!payload) {
+    throw new ApiError(
+      "Unauthorized",
 
-        throw new ApiError(
-            "Unauthorized",
-            401
-        );
+      401,
 
-    }
+      "UNAUTHORIZED",
+    );
+  }
 
+  if (!roles.includes(payload.role)) {
+    throw new ApiError(
+      "Forbidden",
 
+      403,
 
-    if(
-        !roles.includes(
-            payload.role
-        )
-    ){
+      "FORBIDDEN",
+    );
+  }
 
-        throw new ApiError(
-            "Forbidden",
-            403
-        );
-
-    }
-
-
-
-    return true;
-
+  return true;
 }
