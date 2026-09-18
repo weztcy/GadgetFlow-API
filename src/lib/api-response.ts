@@ -1,126 +1,71 @@
-import {
-    NextResponse
-} from "next/server";
+import { NextResponse } from "next/server";
 
+export interface SuccessResponse<T> {
+  success: boolean;
 
+  message: string;
 
-
-
-export interface SuccessResponse<T>{
-
-    success:boolean;
-
-    message:string;
-
-    data:T;
-
+  data: T;
 }
 
+export interface ErrorResponse {
+  success: boolean;
 
+  message: string;
 
+  code: string;
 
-
-export interface ErrorResponse{
-
-    success:boolean;
-
-    message:string;
-
-    code:string;
-
-    errors:unknown | null;
-
+  errors: unknown | null;
 }
-
-
-
-
-
-
-
-
 
 export function successResponse<T>(
+  message: string,
 
-    message:string,
+  data: T,
 
-    data:T,
+  status: number = 200,
+) {
+  const response: SuccessResponse<T> = {
+    success: true,
 
-    status:number = 200
+    message,
 
-){
+    data,
+  };
 
-    const response:SuccessResponse<T> = {
+  return NextResponse.json(
+    response,
 
-        success:true,
-
-        message,
-
-        data
-
-    };
-
-
-
-    return NextResponse.json(
-
-        response,
-
-        {
-
-            status
-
-        }
-
-    );
-
+    {
+      status,
+    },
+  );
 }
 
-
-
-
-
-
-
-
-
 export function errorResponse(
+  message: string,
 
-    message:string,
+  status: number = 400,
 
-    status:number = 400,
+  code: string = "ERROR",
 
-    code:string = "ERROR",
+  errors?: unknown,
+) {
+  const response: ErrorResponse = {
+    success: false,
 
-    errors?:unknown
+    message,
 
-){
+    code,
 
-    const response:ErrorResponse = {
+    errors: errors ?? null,
+  };
 
-        success:false,
+  return NextResponse.json(
+    response,
 
-        message,
-
-        code,
-
-        errors:
-        errors ?? null
-
-    };
-
-
-
-    return NextResponse.json(
-
-        response,
-
-        {
-
-            status
-
-        }
-
-    );
-
+    {
+      status,
+    },
+  );
 }
