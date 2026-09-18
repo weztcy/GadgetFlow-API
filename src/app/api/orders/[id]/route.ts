@@ -84,11 +84,7 @@ export const GET = asyncHandler(
       throw new ApiError("Order tidak ditemukan", 404, "ORDER_NOT_FOUND");
     }
 
-    return successResponse(
-      "Order ditemukan",
-
-      order,
-    );
+    return successResponse("Order ditemukan", order);
   },
 );
 
@@ -173,9 +169,21 @@ export const DELETE = asyncHandler(
 
       entityId: orderId,
 
-      oldData: oldOrder,
+      oldData: {
+        id: oldOrder.id,
 
-      newData: order,
+        customerName: oldOrder.customerName,
+
+        total: oldOrder.total,
+      },
+
+      newData: {
+        id: order.id,
+
+        customerName: order.customerName,
+
+        total: order.total,
+      },
 
       ipAddress: request.headers.get("x-forwarded-for") ?? undefined,
 

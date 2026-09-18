@@ -45,7 +45,9 @@ export const POST = asyncHandler(async (request: NextRequest) => {
   if (!refreshToken) {
     throw new ApiError(
       "Refresh token wajib diisi",
+
       401,
+
       "MISSING_REFRESH_TOKEN",
     );
   }
@@ -55,7 +57,9 @@ export const POST = asyncHandler(async (request: NextRequest) => {
   if (!result) {
     throw new ApiError(
       "Refresh token tidak valid",
+
       401,
+
       "INVALID_REFRESH_TOKEN",
     );
   }
@@ -80,6 +84,10 @@ export const POST = asyncHandler(async (request: NextRequest) => {
     newData: {
       action: "Refresh token rotated",
     },
+
+    ipAddress: request.headers.get("x-forwarded-for") ?? undefined,
+
+    userAgent: request.headers.get("user-agent") ?? undefined,
   });
 
   const response = successResponse(

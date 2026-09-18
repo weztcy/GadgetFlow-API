@@ -36,7 +36,7 @@ import { uploadProductImage } from "@/services/upload.service";
  *         required: true
  *         schema:
  *           type: integer
- *         example: 1
+ *           example: 1
  *
  *     responses:
  *       200:
@@ -50,7 +50,7 @@ import { uploadProductImage } from "@/services/upload.service";
  */
 export const GET = asyncHandler(
   async (
-    request: Request,
+    request: NextRequest,
     context: {
       params: Promise<{ id: string }>;
     },
@@ -72,6 +72,7 @@ export const GET = asyncHandler(
     return successResponse("Product ditemukan", product);
   },
 );
+
 /**
  * @swagger
  * /api/products/{id}:
@@ -89,7 +90,7 @@ export const GET = asyncHandler(
  *         required: true
  *         schema:
  *           type: integer
- *         example: 1
+ *           example: 1
  *
  *     requestBody:
  *       required: true
@@ -101,27 +102,20 @@ export const GET = asyncHandler(
  *             properties:
  *               name:
  *                 type: string
- *                 example: Laptop Gaming
  *
  *               price:
  *                 type: integer
- *                 example: 20000000
  *
  *               categoryId:
  *                 type: integer
- *                 example: 1
  *
  *               image:
  *                 type: string
  *                 format: binary
  *
  *     responses:
- *
  *       200:
  *         description: Product berhasil diupdate
- *
- *       400:
- *         description: ID product tidak valid
  *
  *       401:
  *         description: Unauthorized
@@ -141,10 +135,6 @@ export const PUT = asyncHandler(
   ) => {
     const payload = authenticate(request);
 
-    if (!payload) {
-      throw new ApiError("Unauthorized", 401, "UNAUTHORIZED");
-    }
-
     requireRole(payload, ["ADMIN"]);
 
     const { id } = await context.params;
@@ -163,13 +153,19 @@ export const PUT = asyncHandler(
 
     const formData = await request.formData();
 
-    const name = formData.get("name") as string;
+    const nameValue = formData.get("name");
 
-    const price = Number(formData.get("price"));
+    const name = typeof nameValue === "string" ? nameValue : undefined;
+
+    const priceValue = formData.get("price");
+
+    const price =
+      typeof priceValue === "string" ? Number(priceValue) : undefined;
 
     const categoryIdValue = formData.get("categoryId");
 
-    const categoryId = categoryIdValue ? Number(categoryIdValue) : undefined;
+    const categoryId =
+      typeof categoryIdValue === "string" ? Number(categoryIdValue) : undefined;
 
     let image = oldProduct.image;
 
@@ -193,14 +189,10 @@ export const PUT = asyncHandler(
       throw validation.error;
     }
 
-    const product = await updateProduct(
-      productId,
-
-      validation.data,
-    );
+    const product = await updateProduct(productId, validation.data);
 
     await createAuditLog({
-      userId: payload.id,
+      userId: payload?.id,
 
       action: "UPDATE",
 
@@ -208,19 +200,130 @@ export const PUT = asyncHandler(
 
       entityId: productId,
 
-      oldData: oldProduct,
+      oldData: {
+        id: oldProduct.id,
 
-      newData: product,
+        name: oldProduct.name,
+
+        price: oldProduct.price,
+
+        categoryId: oldProduct.categoryId,
+
+        image: oldProduct.image,
+      },
+
+      newData: {
+        id: product.id,
+
+        name: product.name,
+
+        price: product.price,
+
+        categoryId: product.categoryId,
+
+        image: product.image,
+      },
 
       ipAddress: request.headers.get("x-forwarded-for") ?? undefined,
 
       userAgent: request.headers.get("user-agent") ?? undefined,
     });
 
-    return successResponse(
-      "Product berhasil diupdate",
+    return successResponse("Product berhasil diupdate", product);
+  },
+);
 
-      product,
-    );
+/**
+ * @swagger
+ * /api/products/{id}:
+ *   delete:
+ *     summary: Delete product (Soft Delete)
+ *     tags:
+ *       - Products
+ *
+ *     security:
+ *       - bearerAuth: []
+ *
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *           example: 1
+ *
+ *     responses:
+ *       200:
+ *         description: Product berhasil dihapus
+ *
+ *       401:
+ *         description: Unauthorized
+ *
+ *       403:
+ *         description: Forbidden
+ *
+ *       404:
+ *         description: Product tidak ditemukan
+ */
+export const DELETE = asyncHandler(
+  async (
+    request: NextRequest,
+    context: {
+      params: Promise<{ id: string }>;
+    },
+  ) => {
+    const payload = authenticate(request);
+
+    requireRole(payload, ["ADMIN"]);
+
+    const { id } = await context.params;
+
+    const productId = Number(id);
+
+    if (isNaN(productId)) {
+      throw new ApiError("ID product tidak valid", 400, "INVALID_PRODUCT_ID");
+    }
+
+    const oldProduct = await getProductById(productId);
+
+    if (!oldProduct) {
+      throw new ApiError("Product tidak ditemukan", 404, "PRODUCT_NOT_FOUND");
+    }
+
+    const product = await deleteProduct(productId);
+
+    await createAuditLog({
+      userId: payload?.id,
+
+      action: "DELETE",
+
+      entity: "Product",
+
+      entityId: productId,
+
+      oldData: {
+        id: oldProduct.id,
+
+        name: oldProduct.name,
+
+        price: oldProduct.price,
+
+        categoryId: oldProduct.categoryId,
+
+        image: oldProduct.image,
+      },
+
+      newData: {
+        id: product.id,
+
+        deletedAt: product.deletedAt,
+      },
+
+      ipAddress: request.headers.get("x-forwarded-for") ?? undefined,
+
+      userAgent: request.headers.get("user-agent") ?? undefined,
+    });
+
+    return successResponse("Product berhasil dihapus", product);
   },
 );

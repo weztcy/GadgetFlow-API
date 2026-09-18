@@ -19,49 +19,6 @@ import { createAuditLog } from "@/services/audit.service";
 
 import { authRateLimit } from "@/middleware/rate-limit.middleware";
 
-/**
- * @swagger
- * /api/auth/login:
- *   post:
- *     summary: User login with HttpOnly refresh token cookie
- *
- *     tags:
- *       - Authentication
- *
- *     requestBody:
- *       required: true
- *
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *
- *             required:
- *               - email
- *               - password
- *
- *             properties:
- *
- *               email:
- *                 type: string
- *                 example: budi@gmail.com
- *
- *               password:
- *                 type: string
- *                 example: password123
- *
- *
- *     responses:
- *
- *       200:
- *         description: Login berhasil. Refresh token disimpan dalam HttpOnly cookie.
- *
- *       400:
- *         description: Email dan password wajib diisi
- *
- *       401:
- *         description: Email atau password salah
- */
 export const POST = asyncHandler(async (request: NextRequest) => {
   authRateLimit(request);
 
@@ -83,11 +40,7 @@ export const POST = asyncHandler(async (request: NextRequest) => {
     throw new ApiError("Email atau password salah", 401, "INVALID_CREDENTIALS");
   }
 
-  const passwordMatch = await bcrypt.compare(
-    password,
-
-    user.password,
-  );
+  const passwordMatch = await bcrypt.compare(password, user.password);
 
   if (!passwordMatch) {
     throw new ApiError("Email atau password salah", 401, "INVALID_CREDENTIALS");
@@ -121,6 +74,10 @@ export const POST = asyncHandler(async (request: NextRequest) => {
 
       role: user.role,
     },
+
+    ipAddress: request.headers.get("x-forwarded-for") ?? undefined,
+
+    userAgent: request.headers.get("user-agent") ?? undefined,
   });
 
   const response = successResponse(

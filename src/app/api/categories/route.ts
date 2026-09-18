@@ -128,7 +128,15 @@ export const POST = asyncHandler(async (request: NextRequest) => {
 
     entityId: category.id,
 
-    newData: category,
+    newData: {
+      id: category.id,
+
+      name: category.name,
+    },
+
+    ipAddress: request.headers.get("x-forwarded-for") ?? undefined,
+
+    userAgent: request.headers.get("user-agent") ?? undefined,
   });
 
   return successResponse(

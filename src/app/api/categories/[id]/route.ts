@@ -52,7 +52,8 @@ import { categorySchema } from "@/validators/category.schema";
  */
 export const GET = asyncHandler(
   async (
-    request: Request,
+    request: NextRequest,
+
     context: {
       params: Promise<{ id: string }>;
     },
@@ -71,11 +72,7 @@ export const GET = asyncHandler(
       throw new ApiError("Category tidak ditemukan", 404, "CATEGORY_NOT_FOUND");
     }
 
-    return successResponse(
-      "Berhasil mengambil detail category",
-
-      category,
-    );
+    return successResponse("Berhasil mengambil detail category", category);
   },
 );
 
@@ -130,22 +127,16 @@ export const GET = asyncHandler(
  *
  *       403:
  *         description: Forbidden
- *
- *       500:
- *         description: Internal server error
  */
 export const PUT = asyncHandler(
   async (
     request: NextRequest,
+
     context: {
       params: Promise<{ id: string }>;
     },
   ) => {
     const payload = authenticate(request);
-
-    if (!payload) {
-      throw new ApiError("Unauthorized", 401, "UNAUTHORIZED");
-    }
 
     requireRole(payload, ["ADMIN"]);
 
@@ -171,14 +162,10 @@ export const PUT = asyncHandler(
       throw validation.error;
     }
 
-    const category = await updateCategory(
-      categoryId,
-
-      validation.data,
-    );
+    const category = await updateCategory(categoryId, validation.data);
 
     await createAuditLog({
-      userId: payload.id,
+      userId: payload?.id,
 
       action: "UPDATE",
 
@@ -186,19 +173,119 @@ export const PUT = asyncHandler(
 
       entityId: categoryId,
 
-      oldData: oldCategory,
+      oldData: {
+        id: oldCategory.id,
 
-      newData: category,
+        name: oldCategory.name,
+      },
+
+      newData: {
+        id: category.id,
+
+        name: category.name,
+      },
 
       ipAddress: request.headers.get("x-forwarded-for") ?? undefined,
 
       userAgent: request.headers.get("user-agent") ?? undefined,
     });
 
-    return successResponse(
-      "Category berhasil diupdate",
+    return successResponse("Category berhasil diupdate", category);
+  },
+);
 
-      category,
-    );
+/**
+ * @swagger
+ * /api/categories/{id}:
+ *   delete:
+ *     summary: Delete category
+ *     tags:
+ *       - Categories
+ *
+ *     security:
+ *       - bearerAuth: []
+ *
+ *     parameters:
+ *
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *           example: 1
+ *
+ *
+ *     responses:
+ *
+ *       200:
+ *         description: Category berhasil dihapus
+ *
+ *       400:
+ *         description: ID category tidak valid
+ *
+ *       401:
+ *         description: Unauthorized
+ *
+ *       403:
+ *         description: Forbidden
+ *
+ *       409:
+ *         description: Category masih digunakan product
+ */
+export const DELETE = asyncHandler(
+  async (
+    request: NextRequest,
+
+    context: {
+      params: Promise<{ id: string }>;
+    },
+  ) => {
+    const payload = authenticate(request);
+
+    requireRole(payload, ["ADMIN"]);
+
+    const { id } = await context.params;
+
+    const categoryId = Number(id);
+
+    if (isNaN(categoryId)) {
+      throw new ApiError("ID category tidak valid", 400, "INVALID_CATEGORY_ID");
+    }
+
+    const oldCategory = await getCategoryById(categoryId);
+
+    if (!oldCategory) {
+      throw new ApiError("Category tidak ditemukan", 404, "CATEGORY_NOT_FOUND");
+    }
+
+    const category = await deleteCategory(categoryId);
+
+    await createAuditLog({
+      userId: payload?.id,
+
+      action: "DELETE",
+
+      entity: "Category",
+
+      entityId: categoryId,
+
+      oldData: {
+        id: oldCategory.id,
+
+        name: oldCategory.name,
+      },
+
+      newData: {
+        id: category.id,
+
+        name: category.name,
+      },
+
+      ipAddress: request.headers.get("x-forwarded-for") ?? undefined,
+
+      userAgent: request.headers.get("user-agent") ?? undefined,
+    });
+
+    return successResponse("Category berhasil dihapus", category);
   },
 );

@@ -8,6 +8,8 @@ import { ApiError } from "@/lib/api-error";
 
 import { asyncHandler } from "@/lib/async-handler";
 
+import { createAuditLog } from "@/services/audit.service";
+
 /**
  * @swagger
  * /api/auth/logout:
@@ -67,6 +69,20 @@ export const POST = asyncHandler(async (request: NextRequest) => {
     where: {
       id: token.id,
     },
+  });
+
+  await createAuditLog({
+    userId: token.userId,
+
+    action: "LOGOUT",
+
+    entity: "User",
+
+    entityId: token.userId,
+
+    ipAddress: request.headers.get("x-forwarded-for") ?? undefined,
+
+    userAgent: request.headers.get("user-agent") ?? undefined,
   });
 
   const response = successResponse(

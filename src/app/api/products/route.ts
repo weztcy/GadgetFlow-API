@@ -181,7 +181,17 @@ export const POST = asyncHandler(async (request: NextRequest) => {
 
     entityId: product.id,
 
-    newData: product,
+    newData: {
+      id: product.id,
+
+      name: product.name,
+
+      price: product.price,
+
+      categoryId: product.categoryId,
+
+      image: product.image,
+    },
 
     ipAddress: request.headers.get("x-forwarded-for") ?? undefined,
 
