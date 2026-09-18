@@ -303,13 +303,21 @@ async(
 
     await createAuditLog({
 
+        userId:
+        Number(payload.id),
+
+
         action:"DELETE",
+
 
         entity:"Order",
 
+
         entityId:orderId,
 
+
         oldData:oldOrder,
+
 
         newData:order
 

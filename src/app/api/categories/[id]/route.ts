@@ -34,7 +34,9 @@ import {
     requireRole
 } from "@/middleware/role.middleware";
 
-
+import {
+    categorySchema
+} from "@/validators/category.schema";
 
 
 
@@ -250,20 +252,42 @@ async(
 
 
     const body =
-        await request.json();
+    await request.json();
 
 
 
 
 
-    const category =
-        await updateCategory(
 
-            categoryId,
+const validation =
+    categorySchema.safeParse(
+        body
+    );
 
-            body
 
-        );
+
+
+
+
+if(!validation.success){
+
+    throw validation.error;
+
+}
+
+
+
+
+
+
+const category =
+    await updateCategory(
+
+        categoryId,
+
+        validation.data
+
+    );
 
 
 

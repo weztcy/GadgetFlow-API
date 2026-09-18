@@ -357,13 +357,9 @@ async(
 
     if(!validation.success){
 
-        throw new ApiError(
-            "Data product tidak valid",
-            400,
-            "INVALID_PRODUCT_DATA"
-        );
+    throw validation.error;
 
-    }
+}
 
 
 
@@ -458,12 +454,27 @@ async(
 
 
 
+    if(!payload){
+
+        throw new ApiError(
+            "Unauthorized",
+            401,
+            "UNAUTHORIZED"
+        );
+
+    }
+
+
+
+
     requireRole(
         payload,
         [
             "ADMIN"
         ]
     );
+
+
 
 
 
@@ -477,8 +488,10 @@ async(
 
 
 
+
     const productId =
         Number(id);
+
 
 
 
@@ -498,10 +511,15 @@ async(
 
 
 
+
+
+
     const oldProduct =
         await getProductById(
             productId
         );
+
+
 
 
 
@@ -521,6 +539,9 @@ async(
 
 
 
+
+
+
     const product =
         await deleteProduct(
             productId
@@ -530,19 +551,35 @@ async(
 
 
 
+
+
+
+
     await createAuditLog({
+
+        userId:
+        Number(payload.id),
+
 
         action:"DELETE",
 
+
         entity:"Product",
+
 
         entityId:productId,
 
+
         oldData:oldProduct,
+
 
         newData:product
 
     });
+
+
+
+
 
 
 

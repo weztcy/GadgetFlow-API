@@ -21,7 +21,9 @@ import {
     authenticate
 } from "@/middleware/auth.middleware";
 
-
+import {
+    orderSchema
+} from "@/validators/order.schema";
 
 /**
  * @swagger
@@ -176,6 +178,8 @@ async(
 
 
 
+
+
     const body =
         await request.json();
 
@@ -184,35 +188,26 @@ async(
 
 
 
-    if(
-        !body.customerName ||
-        !body.items ||
-        !Array.isArray(body.items)
-    ){
 
-        throw new ApiError(
-            "Data order tidak valid",
-            400,
-            "INVALID_ORDER_DATA"
+
+    const validation =
+        orderSchema.safeParse(
+            body
         );
+
+
+
+
+
+
+
+
+    if(!validation.success){
+
+        throw validation.error;
 
     }
 
-
-
-
-
-    if(
-        body.items.length === 0
-    ){
-
-        throw new ApiError(
-            "Order minimal memiliki 1 product",
-            400,
-            "EMPTY_ORDER_ITEMS"
-        );
-
-    }
 
 
 
@@ -222,7 +217,9 @@ async(
 
     const order =
         await createOrder(
-            body
+
+            validation.data
+
         );
 
 
@@ -263,9 +260,13 @@ async(
 
 
 
+
     return successResponse(
+
         "Order berhasil dibuat",
+
         order
+
     );
 
 

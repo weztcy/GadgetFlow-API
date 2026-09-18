@@ -351,12 +351,7 @@ async(
 
     if(!validation.success){
 
-
-        throw new ApiError(
-            "Data product tidak valid",
-            400,
-            "INVALID_PRODUCT_DATA"
-        );
+        throw validation.error;
 
     }
 

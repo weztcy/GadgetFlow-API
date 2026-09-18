@@ -169,18 +169,9 @@ async(
 
     if(!validation.success){
 
+    throw validation.error;
 
-        throw new ApiError(
-
-            "Data category tidak valid",
-
-            400,
-
-            "INVALID_CATEGORY_DATA"
-
-        );
-
-    }
+}
 
 
 

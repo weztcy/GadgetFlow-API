@@ -4,43 +4,67 @@ import {
 
 
 
+
+
 export const productSchema =
 
 z.object({
 
+
     name:
 
-        z.string()
-        .min(
-            3,
-            "Nama product minimal 3 karakter"
-        ),
+        z
+            .string({
+                error:
+                "Nama product wajib diisi"
+            })
+            .min(
+                3,
+                "Nama product minimal 3 karakter"
+            ),
+
+
 
 
 
     price:
 
-        z.number()
-        .positive(
-            "Harga harus lebih dari 0"
-        ),
+        z
+            .number({
+                error:
+                "Harga wajib diisi"
+            })
+            .positive(
+                "Harga harus lebih dari 0"
+            ),
+
+
 
 
 
     categoryId:
 
-        z.number()
-        .int()
-        .positive(
-            "Category tidak valid"
-        )
-        .optional(),
+        z
+            .number({
+                error:
+                "Category tidak valid"
+            })
+            .int(
+                "Category ID harus berupa angka"
+            )
+            .positive(
+                "Category tidak valid"
+            )
+            .optional(),
+
+
 
 
 
     image:
 
-        z.string()
-        .optional()
+        z
+            .string()
+            .optional()
 
 });
