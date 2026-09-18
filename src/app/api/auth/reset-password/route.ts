@@ -8,6 +8,8 @@ import { ApiError } from "@/lib/api-error";
 
 import { asyncHandler } from "@/lib/async-handler";
 
+import { resetPasswordSchema } from "@/validators/auth.schema";
+
 import {
   verifyResetToken,
   deleteResetToken,
@@ -41,11 +43,9 @@ import { prisma } from "@/lib/prisma";
  *
  *               token:
  *                 type: string
- *                 example: 9ff47332e345e26772ebdd13771fb4449588f926a8631a8f54e2ddf82f1862ed
  *
  *               password:
  *                 type: string
- *                 example: passwordbaru123
  *
  *
  *     responses:
@@ -54,7 +54,7 @@ import { prisma } from "@/lib/prisma";
  *         description: Password berhasil direset
  *
  *       400:
- *         description: Token dan password wajib diisi
+ *         description: Data tidak valid
  *
  *       401:
  *         description: Token reset password tidak valid atau expired
@@ -62,15 +62,13 @@ import { prisma } from "@/lib/prisma";
 export const POST = asyncHandler(async (request: NextRequest) => {
   const body = await request.json();
 
-  const { token, password } = body;
+  const validation = resetPasswordSchema.safeParse(body);
 
-  if (!token || !password) {
-    throw new ApiError(
-      "Token dan password wajib diisi",
-      400,
-      "MISSING_RESET_DATA",
-    );
+  if (!validation.success) {
+    throw validation.error;
   }
+
+  const { token, password } = validation.data;
 
   const resetToken = await verifyResetToken(token);
 
@@ -93,8 +91,6 @@ export const POST = asyncHandler(async (request: NextRequest) => {
       password: hashedPassword,
     },
   });
-
-  // Revoke semua session lama
 
   await prisma.refreshToken.deleteMany({
     where: {
@@ -119,8 +115,6 @@ export const POST = asyncHandler(async (request: NextRequest) => {
 
     userAgent: request.headers.get("user-agent") ?? undefined,
   });
-
-  // Hapus token agar tidak dapat digunakan ulang
 
   await deleteResetToken(token);
 

@@ -4,8 +4,6 @@ import { NextRequest } from "next/server";
 
 import { successResponse } from "@/lib/api-response";
 
-import { ApiError } from "@/lib/api-error";
-
 import { asyncHandler } from "@/lib/async-handler";
 
 import { registerSchema } from "@/validators/auth.schema";
@@ -15,6 +13,8 @@ import { createUser, getUserByEmail } from "@/services/user.service";
 import { sendWelcomeEmail } from "@/services/email.service";
 
 import { createAuditLog } from "@/services/audit.service";
+
+import { ApiError } from "@/lib/api-error";
 
 /**
  * @swagger
@@ -69,7 +69,7 @@ export const POST = asyncHandler(async (request: NextRequest) => {
   const validation = registerSchema.safeParse(body);
 
   if (!validation.success) {
-    throw new ApiError("Data tidak valid", 400, "INVALID_REGISTER_DATA");
+    throw validation.error;
   }
 
   const { name, email, password } = validation.data;

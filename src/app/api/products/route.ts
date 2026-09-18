@@ -18,6 +18,64 @@ import { requireRole } from "@/middleware/role.middleware";
 
 import { uploadProductImage } from "@/services/upload.service";
 
+/**
+ * @swagger
+ * /api/products:
+ *   get:
+ *     summary: Get all products
+ *     tags:
+ *       - Products
+ *
+ *     parameters:
+ *
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           example: 1
+ *
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           example: 10
+ *
+ *       - in: query
+ *         name: search
+ *         schema:
+ *           type: string
+ *           example: Laptop
+ *
+ *       - in: query
+ *         name: sort
+ *         schema:
+ *           type: string
+ *           example: price_asc
+ *
+ *       - in: query
+ *         name: minPrice
+ *         schema:
+ *           type: integer
+ *           example: 1000000
+ *
+ *       - in: query
+ *         name: maxPrice
+ *         schema:
+ *           type: integer
+ *           example: 20000000
+ *
+ *
+ *     responses:
+ *
+ *       200:
+ *         description: Berhasil mengambil data product
+ *
+ *       400:
+ *         description: Parameter tidak valid
+ *
+ *       500:
+ *         description: Internal server error
+ */
 export const GET = asyncHandler(async (request: NextRequest) => {
   const { searchParams } = new URL(request.url);
 

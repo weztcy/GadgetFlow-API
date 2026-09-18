@@ -120,13 +120,19 @@ export const GET = asyncHandler(
  *         description: Category berhasil diupdate
  *
  *       400:
- *         description: Data category tidak valid
+ *         description: ID category atau data category tidak valid
  *
  *       401:
  *         description: Unauthorized
  *
  *       403:
  *         description: Forbidden
+ *
+ *       404:
+ *         description: Category tidak ditemukan
+ *
+ *       500:
+ *         description: Internal server error
  */
 export const PUT = asyncHandler(
   async (
@@ -229,8 +235,14 @@ export const PUT = asyncHandler(
  *       403:
  *         description: Forbidden
  *
+ *       404:
+ *         description: Category tidak ditemukan
+ *
  *       409:
  *         description: Category masih digunakan product
+ *
+ *       500:
+ *         description: Internal server error
  */
 export const DELETE = asyncHandler(
   async (

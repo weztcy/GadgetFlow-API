@@ -6,6 +6,8 @@ import { ApiError } from "@/lib/api-error";
 
 import { asyncHandler } from "@/lib/async-handler";
 
+import { forgotPasswordSchema } from "@/validators/auth.schema";
+
 import { getUserByEmail } from "@/services/user.service";
 
 import { generateResetToken } from "@/services/password-reset.service";
@@ -58,11 +60,13 @@ export const POST = asyncHandler(async (request: NextRequest) => {
 
   const body = await request.json();
 
-  const { email } = body;
+  const validation = forgotPasswordSchema.safeParse(body);
 
-  if (!email) {
-    throw new ApiError("Email wajib diisi", 400, "MISSING_EMAIL");
+  if (!validation.success) {
+    throw validation.error;
   }
+
+  const { email } = validation.data;
 
   const user = await getUserByEmail(email);
 

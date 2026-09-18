@@ -42,9 +42,7 @@ export const POST = asyncHandler(async (request: NextRequest) => {
   if (!refreshToken) {
     throw new ApiError(
       "Refresh token wajib diisi",
-
       401,
-
       "MISSING_REFRESH_TOKEN",
     );
   }
@@ -58,9 +56,7 @@ export const POST = asyncHandler(async (request: NextRequest) => {
   if (!token) {
     throw new ApiError(
       "Refresh token tidak ditemukan",
-
       401,
-
       "REFRESH_TOKEN_NOT_FOUND",
     );
   }
@@ -79,6 +75,10 @@ export const POST = asyncHandler(async (request: NextRequest) => {
     entity: "User",
 
     entityId: token.userId,
+
+    newData: {
+      action: "User logout",
+    },
 
     ipAddress: request.headers.get("x-forwarded-for") ?? undefined,
 

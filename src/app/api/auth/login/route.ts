@@ -1,120 +1,15 @@
-import bcrypt from "bcrypt";
+import { z } from "zod";
 
-import { NextRequest } from "next/server";
+export const registerSchema = z.object({
+  name: z.string().min(3, "Nama minimal 3 karakter"),
 
-import { successResponse } from "@/lib/api-response";
+  email: z.string().email("Format email tidak valid"),
 
-import { ApiError } from "@/lib/api-error";
+  password: z.string().min(8, "Password minimal 8 karakter"),
+});
 
-import { asyncHandler } from "@/lib/async-handler";
+export const loginSchema = z.object({
+  email: z.string().email("Format email tidak valid"),
 
-import { getUserByEmail } from "@/services/user.service";
-
-import {
-  generateAccessToken,
-  generateRefreshToken,
-} from "@/services/token.service";
-
-import { createAuditLog } from "@/services/audit.service";
-
-import { authRateLimit } from "@/middleware/rate-limit.middleware";
-
-export const POST = asyncHandler(async (request: NextRequest) => {
-  authRateLimit(request);
-
-  const body = await request.json();
-
-  const { email, password } = body;
-
-  if (!email || !password) {
-    throw new ApiError(
-      "Email dan password wajib diisi",
-      400,
-      "MISSING_LOGIN_FIELD",
-    );
-  }
-
-  const user = await getUserByEmail(email);
-
-  if (!user) {
-    throw new ApiError("Email atau password salah", 401, "INVALID_CREDENTIALS");
-  }
-
-  const passwordMatch = await bcrypt.compare(password, user.password);
-
-  if (!passwordMatch) {
-    throw new ApiError("Email atau password salah", 401, "INVALID_CREDENTIALS");
-  }
-
-  const accessToken = generateAccessToken({
-    id: user.id,
-
-    email: user.email,
-
-    role: user.role,
-  });
-
-  const refreshToken = await generateRefreshToken(user.id);
-
-  await createAuditLog({
-    userId: user.id,
-
-    action: "LOGIN",
-
-    entity: "User",
-
-    entityId: user.id,
-
-    newData: {
-      id: user.id,
-
-      name: user.name,
-
-      email: user.email,
-
-      role: user.role,
-    },
-
-    ipAddress: request.headers.get("x-forwarded-for") ?? undefined,
-
-    userAgent: request.headers.get("user-agent") ?? undefined,
-  });
-
-  const response = successResponse(
-    "Login berhasil",
-
-    {
-      accessToken,
-
-      user: {
-        id: user.id,
-
-        name: user.name,
-
-        email: user.email,
-
-        role: user.role,
-      },
-    },
-  );
-
-  response.cookies.set(
-    "refreshToken",
-
-    refreshToken,
-
-    {
-      httpOnly: true,
-
-      secure: process.env.NODE_ENV === "production",
-
-      sameSite: "strict",
-
-      maxAge: 60 * 60 * 24 * 7,
-
-      path: "/",
-    },
-  );
-
-  return response;
+  password: z.string().min(8, "Password minimal 8 karakter"),
 });

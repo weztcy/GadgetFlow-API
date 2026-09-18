@@ -79,7 +79,7 @@ export async function verifyResetToken(token: string) {
 }
 
 export async function deleteResetToken(token: string) {
-  return prisma.passwordResetToken.delete({
+  return prisma.passwordResetToken.deleteMany({
     where: {
       token,
     },
