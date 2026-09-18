@@ -14,8 +14,8 @@ import {
 
 
 import {
-    handleApiError
-} from "@/lib/error-handler";
+    asyncHandler
+} from "@/lib/async-handler";
 
 
 import {
@@ -65,115 +65,109 @@ import {
  *       401:
  *         description: Refresh token tidak valid
  */
-export async function POST(
+export const POST = asyncHandler(
+async(
     request:NextRequest
-){
-
-    try {
+)=>{
 
 
-        const body =
-            await request.json();
+    const body =
+        await request.json();
 
 
 
 
 
-        const {
+    const {
+        refreshToken
+    } =
+    body;
+
+
+
+
+
+
+
+    if(!refreshToken){
+
+        throw new ApiError(
+            "Refresh token wajib diisi",
+            400,
+            "MISSING_REFRESH_TOKEN"
+        );
+
+    }
+
+
+
+
+
+
+
+
+
+    const user =
+        await verifyRefreshToken(
             refreshToken
-        } =
-        body;
-
-
-
-
-
-
-
-        if(!refreshToken){
-
-            throw new ApiError(
-                "Refresh token wajib diisi",
-                400
-            );
-
-        }
-
-
-
-
-
-
-
-
-        const user =
-            await verifyRefreshToken(
-                refreshToken
-            );
-
-
-
-
-
-
-
-        if(!user){
-
-
-            throw new ApiError(
-                "Refresh token tidak valid",
-                401
-            );
-
-        }
-
-
-
-
-
-
-
-
-        const accessToken =
-            generateAccessToken({
-
-                id:user.id,
-
-                email:user.email,
-
-                role:user.role
-
-            });
-
-
-
-
-
-
-
-
-        return successResponse(
-
-            "Access token berhasil diperbarui",
-
-            {
-
-                accessToken
-
-            }
-
         );
 
 
 
 
 
-    }catch(error){
 
 
-        return handleApiError(error);
 
+    if(!user){
+
+
+        throw new ApiError(
+            "Refresh token tidak valid",
+            401,
+            "INVALID_REFRESH_TOKEN"
+        );
 
     }
 
-}
+
+
+
+
+
+
+
+
+    const accessToken =
+        generateAccessToken({
+
+            id:user.id,
+
+            email:user.email,
+
+            role:user.role
+
+        });
+
+
+
+
+
+
+
+
+
+    return successResponse(
+
+        "Access token berhasil diperbarui",
+
+        {
+
+            accessToken
+
+        }
+
+    );
+
+
+});

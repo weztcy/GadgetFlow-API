@@ -12,8 +12,8 @@ import {
 
 
 import {
-    handleApiError
-} from "@/lib/error-handler";
+    asyncHandler
+} from "@/lib/async-handler";
 
 
 import {
@@ -72,25 +72,25 @@ import {
  *       401:
  *         description: Email atau password salah
  */
-export async function POST(
+export const POST = asyncHandler(
+async(
     request:Request
-){
+)=>{
 
-    try {
 
+    const body =
+        await request.json();
 
-        const body =
-            await request.json();
 
 
 
 
+    const {
+        email,
+        password
+    } =
+    body;
 
-        const {
-            email,
-            password
-        } =
-        body;
 
 
 
@@ -98,17 +98,18 @@ export async function POST(
 
 
 
-        if(
-            !email ||
-            !password
-        ){
+    if(
+        !email ||
+        !password
+    ){
 
-            throw new ApiError(
-                "Email dan password wajib diisi",
-                400
-            );
+        throw new ApiError(
+            "Email dan password wajib diisi",
+            400,
+            "MISSING_LOGIN_FIELD"
+        );
 
-        }
+    }
 
 
 
@@ -117,11 +118,11 @@ export async function POST(
 
 
 
-        const user =
-            await getUserByEmail(
-                email
-            );
 
+    const user =
+        await getUserByEmail(
+            email
+        );
 
 
 
@@ -129,16 +130,17 @@ export async function POST(
 
 
 
-        if(!user){
 
-            throw new ApiError(
-                "Email atau password salah",
-                401
-            );
 
-        }
+    if(!user){
 
+        throw new ApiError(
+            "Email atau password salah",
+            401,
+            "INVALID_CREDENTIALS"
+        );
 
+    }
 
 
 
@@ -146,105 +148,14 @@ export async function POST(
 
 
 
-        const passwordMatch =
-            await bcrypt.compare(
 
-                password,
 
-                user.password
+    const passwordMatch =
+        await bcrypt.compare(
 
-            );
+            password,
 
-
-
-
-
-
-
-
-        if(!passwordMatch){
-
-
-            throw new ApiError(
-                "Email atau password salah",
-                401
-            );
-
-        }
-
-
-
-
-
-
-
-
-        const accessToken =
-            generateAccessToken({
-
-                id:user.id,
-
-                email:user.email,
-
-                role:user.role
-
-            });
-
-
-
-
-
-
-
-
-        const refreshToken =
-            await generateRefreshToken(
-
-                user.id
-
-            );
-
-
-
-
-
-
-
-
-
-        return successResponse(
-
-            "Login berhasil",
-
-            {
-
-
-                accessToken,
-
-
-                refreshToken,
-
-
-
-                user:{
-
-
-                    id:user.id,
-
-
-                    name:user.name,
-
-
-                    email:user.email,
-
-
-                    role:user.role
-
-
-                }
-
-
-            }
+            user.password
 
         );
 
@@ -252,12 +163,99 @@ export async function POST(
 
 
 
-    }catch(error){
 
 
-        return handleApiError(error);
 
+
+    if(!passwordMatch){
+
+
+        throw new ApiError(
+            "Email atau password salah",
+            401,
+            "INVALID_CREDENTIALS"
+        );
 
     }
 
-}
+
+
+
+
+
+
+
+
+
+    const accessToken =
+        generateAccessToken({
+
+            id:user.id,
+
+            email:user.email,
+
+            role:user.role
+
+        });
+
+
+
+
+
+
+
+
+
+    const refreshToken =
+        await generateRefreshToken(
+
+            user.id
+
+        );
+
+
+
+
+
+
+
+
+
+    return successResponse(
+
+        "Login berhasil",
+
+        {
+
+
+            accessToken,
+
+
+            refreshToken,
+
+
+
+            user:{
+
+
+                id:user.id,
+
+
+                name:user.name,
+
+
+                email:user.email,
+
+
+                role:user.role
+
+
+            }
+
+
+        }
+
+    );
+
+
+});

@@ -9,8 +9,8 @@ import {
 
 
 import {
-    handleApiError
-} from "@/lib/error-handler";
+    asyncHandler
+} from "@/lib/async-handler";
 
 
 import {
@@ -67,38 +67,52 @@ import {
  *       404:
  *         description: Email tidak ditemukan
  */
-export async function POST(
+export const POST = asyncHandler(
+async(
     request:Request
-){
-
-    try {
+)=>{
 
 
-        const body =
-            await request.json();
+    const body =
+        await request.json();
 
 
 
 
 
-        const {
+    const {
+        email
+    } =
+    body;
+
+
+
+
+
+
+
+    if(!email){
+
+        throw new ApiError(
+            "Email wajib diisi",
+            400,
+            "MISSING_EMAIL"
+        );
+
+    }
+
+
+
+
+
+
+
+
+
+    const user =
+        await getUserByEmail(
             email
-        } =
-        body;
-
-
-
-
-
-
-        if(!email){
-
-            throw new ApiError(
-                "Email wajib diisi",
-                400
-            );
-
-        }
+        );
 
 
 
@@ -107,10 +121,16 @@ export async function POST(
 
 
 
-        const user =
-            await getUserByEmail(
-                email
-            );
+
+    if(!user){
+
+        throw new ApiError(
+            "Email tidak ditemukan",
+            404,
+            "EMAIL_NOT_FOUND"
+        );
+
+    }
 
 
 
@@ -119,58 +139,11 @@ export async function POST(
 
 
 
-        if(!user){
 
-            throw new ApiError(
-                "Email tidak ditemukan",
-                404
-            );
+    const token =
+        await generateResetToken(
 
-        }
-
-
-
-
-
-
-
-
-        const token =
-            await generateResetToken(
-
-                user.id
-
-            );
-
-
-
-
-
-
-
-
-        await sendResetPasswordEmail({
-
-            name:user.name,
-
-            email:user.email,
-
-            token
-
-        });
-
-
-
-
-
-
-
-
-        return successResponse(
-
-            "Link reset password telah dikirim",
-
-            null
+            user.id
 
         );
 
@@ -178,12 +151,35 @@ export async function POST(
 
 
 
-    }catch(error){
 
 
-        return handleApiError(error);
 
 
-    }
+    await sendResetPasswordEmail({
 
-}
+        name:user.name,
+
+        email:user.email,
+
+        token
+
+    });
+
+
+
+
+
+
+
+
+
+    return successResponse(
+
+        "Link reset password telah dikirim",
+
+        null
+
+    );
+
+
+});

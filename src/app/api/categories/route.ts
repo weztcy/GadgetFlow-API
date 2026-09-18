@@ -14,8 +14,8 @@ import {
 
 
 import {
-    handleApiError
-} from "@/lib/error-handler";
+    asyncHandler
+} from "@/lib/async-handler";
 
 
 import {
@@ -59,43 +59,25 @@ import {
  *       500:
  *         description: Internal server error
  */
-export async function GET(){
-
-    try {
-
-
-        const categories =
-            await getCategories();
+export const GET = asyncHandler(
+async()=>{
 
 
-
-        return successResponse(
-
-            "Berhasil mengambil data category",
-
-            categories
-
-        );
+    const categories =
+        await getCategories();
 
 
 
-    }catch(error){
+    return successResponse(
+
+        "Berhasil mengambil data category",
+
+        categories
+
+    );
 
 
-        return handleApiError(error);
-
-
-    }
-
-}
-
-
-
-
-
-
-
-
+});
 
 /**
  * @swagger
@@ -144,98 +126,88 @@ export async function GET(){
  *       500:
  *         description: Internal server error
  */
-export async function POST(
+export const POST = asyncHandler(
+async(
     request:NextRequest
-){
-
-    try {
+)=>{
 
 
-        const payload =
-            authenticate(request);
+    const payload =
+        authenticate(request);
 
 
 
-        requireRole(
+    requireRole(
 
-            payload,
+        payload,
 
-            [
-                "ADMIN"
-            ]
+        [
+            "ADMIN"
+        ]
 
+    );
+
+
+
+
+
+    const body =
+        await request.json();
+
+
+
+
+
+    const validation =
+        categorySchema.safeParse(
+            body
         );
 
 
 
 
 
-        const body =
-            await request.json();
+    if(!validation.success){
 
 
+        throw new ApiError(
 
+            "Data category tidak valid",
 
+            400,
 
-        const validation =
-            categorySchema.safeParse(
-                body
-            );
-
-
-
-
-
-        if(!validation.success){
-
-
-            throw new ApiError(
-
-                "Data category tidak valid",
-
-                400
-
-            );
-
-        }
-
-
-
-
-
-
-
-        const category =
-            await createCategory(
-
-                validation.data
-
-            );
-
-
-
-
-
-
-
-        return successResponse(
-
-            "Category berhasil dibuat",
-
-            category
+            "INVALID_CATEGORY_DATA"
 
         );
-
-
-
-
-
-    }catch(error){
-
-
-        return handleApiError(error);
-
 
     }
 
-}
+
+
+
+
+
+
+    const category =
+        await createCategory(
+
+            validation.data
+
+        );
+
+
+
+
+
+
+
+    return successResponse(
+
+        "Category berhasil dibuat",
+
+        category
+
+    );
+
+
+});

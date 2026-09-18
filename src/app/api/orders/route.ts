@@ -4,7 +4,9 @@ import { successResponse } from "@/lib/api-response";
 
 import { ApiError } from "@/lib/api-error";
 
-import { handleApiError } from "@/lib/error-handler";
+import {
+    asyncHandler
+} from "@/lib/async-handler";
 
 import {
     createOrder,
@@ -43,55 +45,45 @@ import {
  *       500:
  *         description: Internal server error
  */
-export async function GET(
+export const GET = asyncHandler(
+async(
     request: NextRequest
-){
-
-    try {
+)=>{
 
 
-        const payload =
-            authenticate(request);
+    const payload =
+        authenticate(request);
 
 
 
-        if(!payload){
+    if(!payload){
 
-            throw new ApiError(
-                "Unauthorized",
-                401
-            );
-
-        }
-
-
-
-
-        const orders =
-            await getOrders();
-
-
-
-
-        return successResponse(
-            "Berhasil mengambil data order",
-            orders
+        throw new ApiError(
+            "Unauthorized",
+            401,
+            "UNAUTHORIZED"
         );
-
-
-
-    }catch(error){
-
-        return handleApiError(error);
 
     }
 
-}
+
+
+
+
+    const orders =
+        await getOrders();
 
 
 
 
 
+    return successResponse(
+        "Berhasil mengambil data order",
+        orders
+    );
+
+
+});
 
 /**
  * @swagger
@@ -157,77 +149,70 @@ export async function GET(
  *       500:
  *         description: Internal server error
  */
-export async function POST(
+export const POST = asyncHandler(
+async(
     request: NextRequest
-){
-
-    try {
+)=>{
 
 
-        const payload =
-            authenticate(request);
-
-
-
-
-        if(!payload){
-
-            throw new ApiError(
-                "Unauthorized",
-                401
-            );
-
-        }
+    const payload =
+        authenticate(request);
 
 
 
 
 
-        const body =
-            await request.json();
+    if(!payload){
+
+        throw new ApiError(
+            "Unauthorized",
+            401,
+            "UNAUTHORIZED"
+        );
+
+    }
 
 
 
 
 
-        if(
-            !body.customerName ||
-            !body.items ||
-            !Array.isArray(body.items)
-        ){
-
-            throw new ApiError(
-                "Data order tidak valid",
-                400
-            );
-
-        }
-
-
-
-
-
-        if(
-            body.items.length === 0
-        ){
-
-            throw new ApiError(
-                "Order minimal memiliki 1 product",
-                400
-            );
-
-        }
+    const body =
+        await request.json();
 
 
 
 
 
 
+    if(
+        !body.customerName ||
+        !body.items ||
+        !Array.isArray(body.items)
+    ){
 
-        const order =
-            await createOrder(
-                body
-            );
+        throw new ApiError(
+            "Data order tidak valid",
+            400,
+            "INVALID_ORDER_DATA"
+        );
+
+    }
+
+
+
+
+
+    if(
+        body.items.length === 0
+    ){
+
+        throw new ApiError(
+            "Order minimal memiliki 1 product",
+            400,
+            "EMPTY_ORDER_ITEMS"
+        );
+
+    }
 
 
 
@@ -235,47 +220,53 @@ export async function POST(
 
 
 
-
-        await createAuditLog({
-
-            userId:
-            Number(payload.id),
-
-
-            action:
-            "CREATE",
-
-
-            entity:
-            "Order",
-
-
-            entityId:
-            order.id,
-
-
-            newData:
-            order
-
-        });
-
-
-
-
-
-
-
-        return successResponse(
-            "Order berhasil dibuat",
-            order
+    const order =
+        await createOrder(
+            body
         );
 
 
 
-    }catch(error){
 
-        return handleApiError(error);
 
-    }
 
-}
+
+
+
+    await createAuditLog({
+
+        userId:
+        Number(payload.id),
+
+
+        action:
+        "CREATE",
+
+
+        entity:
+        "Order",
+
+
+        entityId:
+        order.id,
+
+
+        newData:
+        order
+
+    });
+
+
+
+
+
+
+
+
+    return successResponse(
+        "Order berhasil dibuat",
+        order
+    );
+
+
+});

@@ -12,8 +12,8 @@ import {
 
 
 import {
-    handleApiError
-} from "@/lib/error-handler";
+    asyncHandler
+} from "@/lib/async-handler";
 
 
 import {
@@ -82,143 +82,147 @@ import {
  *       409:
  *         description: Email sudah digunakan
  */
-export async function POST(
+export const POST = asyncHandler(
+async(
     request:Request
-){
+)=>{
+
+
+    const body =
+        await request.json();
+
+
+
+
+
+    const validation =
+        registerSchema.safeParse(
+            body
+        );
+
+
+
+
+
+    if(!validation.success){
+
+
+        throw new ApiError(
+
+            "Data tidak valid",
+
+            400,
+
+            "INVALID_REGISTER_DATA"
+
+        );
+
+    }
+
+
+
+
+
+
+    const {
+        name,
+        email,
+        password
+    } =
+    validation.data;
+
+
+
+
+
+
+
+
+    const existingUser =
+        await getUserByEmail(
+            email
+        );
+
+
+
+
+
+
+
+    if(existingUser){
+
+
+        throw new ApiError(
+
+            "Email sudah digunakan",
+
+            409,
+
+            "EMAIL_ALREADY_USED"
+
+        );
+
+    }
+
+
+
+
+
+
+
+
+    const hashedPassword =
+        await bcrypt.hash(
+
+            password,
+
+            10
+
+        );
+
+
+
+
+
+
+
+
+
+
+    const user =
+        await createUser({
+
+
+            name,
+
+
+            email,
+
+
+            password:
+            hashedPassword
+
+
+        });
+
+
+
+
+
+
+
+
 
     try {
 
 
-        const body =
-            await request.json();
+        await sendWelcomeEmail({
 
+            name:user.name,
 
+            email:user.email
 
-
-
-        const validation =
-            registerSchema.safeParse(
-                body
-            );
-
-
-
-
-
-        if(!validation.success){
-
-
-            throw new ApiError(
-
-                "Data tidak valid",
-
-                400
-
-            );
-
-        }
-
-
-
-
-
-
-        const {
-            name,
-            email,
-            password
-        } =
-        validation.data;
-
-
-
-
-
-
-
-        const existingUser =
-            await getUserByEmail(
-                email
-            );
-
-
-
-
-
-
-
-        if(existingUser){
-
-
-            throw new ApiError(
-
-                "Email sudah digunakan",
-
-                409
-
-            );
-
-        }
-
-
-
-
-
-
-
-
-        const hashedPassword =
-            await bcrypt.hash(
-
-                password,
-
-                10
-
-            );
-
-
-
-
-
-
-
-
-
-        const user =
-            await createUser({
-
-
-                name,
-
-
-                email,
-
-
-                password:
-                hashedPassword
-
-
-            });
-
-
-
-
-
-
-
-
-
-
-        try {
-
-
-    await sendWelcomeEmail({
-
-        name:user.name,
-
-        email:user.email
-
-    });
+        });
 
 
     }catch(error){
@@ -240,41 +244,28 @@ export async function POST(
 
 
 
-        return successResponse(
+    return successResponse(
 
 
-            "Register berhasil",
+        "Register berhasil",
 
 
-            {
+        {
 
 
-                id:user.id,
+            id:user.id,
 
 
-                name:user.name,
+            name:user.name,
 
 
-                email:user.email
+            email:user.email
 
 
-            }
+        }
 
 
-        );
+    );
 
 
-
-
-
-
-
-    }catch(error){
-
-
-        return handleApiError(error);
-
-
-    }
-
-}
+});

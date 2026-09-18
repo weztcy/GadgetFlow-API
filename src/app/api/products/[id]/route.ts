@@ -14,8 +14,8 @@ import {
 
 
 import {
-    handleApiError
-} from "@/lib/error-handler";
+    asyncHandler
+} from "@/lib/async-handler";
 
 
 import {
@@ -78,75 +78,70 @@ import {
  *       404:
  *         description: Product tidak ditemukan
  */
-export async function GET(
+export const GET = asyncHandler(
+async(
     request:Request,
     context:{
         params:Promise<{id:string}>
     }
-){
-
-    try {
+)=>{
 
 
-        const {
-            id
-        } =
-        await context.params;
+    const {
+        id
+    } =
+    await context.params;
 
 
 
-        const productId =
-            Number(id);
+    const productId =
+        Number(id);
 
 
 
 
-        if(isNaN(productId)){
 
-            throw new ApiError(
-                "ID product tidak valid",
-                400
-            );
+    if(isNaN(productId)){
 
-        }
+        throw new ApiError(
+            "ID product tidak valid",
+            400,
+            "INVALID_PRODUCT_ID"
+        );
 
-
-
-
-        const product =
-            await getProductById(
-                productId
-            );
+    }
 
 
 
 
-        if(!product){
-
-            throw new ApiError(
-                "Product tidak ditemukan",
-                404
-            );
-
-        }
-
-
-
-
-        return successResponse(
-            "Product ditemukan",
-            product
+    const product =
+        await getProductById(
+            productId
         );
 
 
 
-    }catch(error){
 
-        return handleApiError(error);
+    if(!product){
+
+        throw new ApiError(
+            "Product tidak ditemukan",
+            404,
+            "PRODUCT_NOT_FOUND"
+        );
 
     }
 
-}
+
+
+
+    return successResponse(
+        "Product ditemukan",
+        product
+    );
+
+
+});
 
 
 /**
@@ -202,213 +197,157 @@ export async function GET(
  *       403:
  *         description: Forbidden
  */
-export async function PUT(
+export const PUT = asyncHandler(
+async(
     request:NextRequest,
     context:{
         params:Promise<{id:string}>
     }
-){
-
-    try {
+)=>{
 
 
-        const payload =
-            authenticate(request);
+    const payload =
+        authenticate(request);
 
 
 
-        requireRole(
-            payload,
-            [
-                "ADMIN"
-            ]
+    requireRole(
+        payload,
+        [
+            "ADMIN"
+        ]
+    );
+
+
+
+
+
+    const {
+        id
+    } =
+    await context.params;
+
+
+
+
+    const productId =
+        Number(id);
+
+
+
+
+
+    if(isNaN(productId)){
+
+        throw new ApiError(
+            "ID product tidak valid",
+            400,
+            "INVALID_PRODUCT_ID"
+        );
+
+    }
+
+
+
+
+
+    const oldProduct =
+        await getProductById(
+            productId
         );
 
 
 
 
 
-        const {
-            id
-        } =
-        await context.params;
+    if(!oldProduct){
+
+        throw new ApiError(
+            "Product tidak ditemukan",
+            404,
+            "PRODUCT_NOT_FOUND"
+        );
+
+    }
 
 
 
 
-        const productId =
-            Number(id);
+
+    const formData =
+        await request.formData();
 
 
 
 
 
-        if(isNaN(productId)){
+    const name =
+        formData.get("name") as string;
 
-            throw new ApiError(
-                "ID product tidak valid",
-                400
+
+
+    const price =
+        Number(
+            formData.get("price")
+        );
+
+
+
+    const categoryIdValue =
+        formData.get("categoryId");
+
+
+
+    const categoryId =
+        categoryIdValue
+        ? Number(categoryIdValue)
+        : undefined;
+
+
+
+
+
+    let image =
+        oldProduct.image;
+
+
+
+
+
+    const file =
+        formData.get("image");
+
+
+
+
+
+    if(
+        file &&
+        file instanceof File &&
+        file.size > 0
+    ){
+
+        image =
+            await uploadProductImage(
+                file
             );
 
-        }
+    }
 
 
 
 
 
-        const oldProduct =
-            await getProductById(
-                productId
-            );
+    const validation =
+        productSchema.safeParse({
 
+            name,
 
+            price,
 
+            categoryId,
 
-
-        if(!oldProduct){
-
-            throw new ApiError(
-                "Product tidak ditemukan",
-                404
-            );
-
-        }
-
-
-
-
-
-
-
-        const formData =
-            await request.formData();
-
-
-
-
-
-        const name =
-            formData.get("name") as string;
-
-
-
-        const price =
-            Number(
-                formData.get("price")
-            );
-
-
-
-        const categoryIdValue =
-            formData.get("categoryId");
-
-
-
-        const categoryId =
-            categoryIdValue
-            ? Number(categoryIdValue)
-            : undefined;
-
-
-
-
-
-
-        let image =
-            oldProduct.image;
-
-
-
-
-
-
-
-        const file =
-            formData.get("image");
-
-
-
-
-
-        if(
-            file &&
-            file instanceof File &&
-            file.size > 0
-        ){
-
-            image =
-                await uploadProductImage(
-                    file
-                );
-
-        }
-
-
-
-
-
-
-
-        const validation =
-            productSchema.safeParse({
-
-                name,
-
-                price,
-
-                categoryId,
-
-                image
-
-            });
-
-
-
-
-
-
-        if(!validation.success){
-
-            throw new ApiError(
-                "Data product tidak valid",
-                400
-            );
-
-        }
-
-
-
-
-
-
-
-        const product =
-            await updateProduct(
-
-                productId,
-
-                validation.data
-
-            );
-
-
-
-
-
-
-
-
-        await createAuditLog({
-
-            action:"UPDATE",
-
-            entity:"Product",
-
-            entityId:productId,
-
-            oldData:oldProduct,
-
-            newData:product
+            image
 
         });
 
@@ -416,26 +355,61 @@ export async function PUT(
 
 
 
+    if(!validation.success){
+
+        throw new ApiError(
+            "Data product tidak valid",
+            400,
+            "INVALID_PRODUCT_DATA"
+        );
+
+    }
 
 
-        return successResponse(
 
-            "Product berhasil diupdate",
 
-            product
+
+    const product =
+        await updateProduct(
+
+            productId,
+
+            validation.data
 
         );
 
 
 
 
-    }catch(error){
 
-        return handleApiError(error);
+    await createAuditLog({
 
-    }
+        action:"UPDATE",
 
-}
+        entity:"Product",
+
+        entityId:productId,
+
+        oldData:oldProduct,
+
+        newData:product
+
+    });
+
+
+
+
+
+    return successResponse(
+
+        "Product berhasil diupdate",
+
+        product
+
+    );
+
+
+});
 
 
 /**
@@ -470,129 +444,117 @@ export async function PUT(
  *       404:
  *         description: Product tidak ditemukan
  */
-export async function DELETE(
+export const DELETE = asyncHandler(
+async(
     request:NextRequest,
     context:{
         params:Promise<{id:string}>
     }
-){
-
-    try {
+)=>{
 
 
-        const payload =
-            authenticate(request);
+    const payload =
+        authenticate(request);
 
 
 
-        requireRole(
-            payload,
-            [
-                "ADMIN"
-            ]
+    requireRole(
+        payload,
+        [
+            "ADMIN"
+        ]
+    );
+
+
+
+
+
+    const {
+        id
+    } =
+    await context.params;
+
+
+
+
+    const productId =
+        Number(id);
+
+
+
+
+
+    if(isNaN(productId)){
+
+        throw new ApiError(
+            "ID product tidak valid",
+            400,
+            "INVALID_PRODUCT_ID"
         );
-
-
-
-
-
-
-        const {
-            id
-        } =
-        await context.params;
-
-
-
-
-        const productId =
-            Number(id);
-
-
-
-
-
-        if(isNaN(productId)){
-
-            throw new ApiError(
-                "ID product tidak valid",
-                400
-            );
-
-        }
-
-
-
-
-
-        const oldProduct =
-            await getProductById(
-                productId
-            );
-
-
-
-
-
-        if(!oldProduct){
-
-            throw new ApiError(
-                "Product tidak ditemukan",
-                404
-            );
-
-        }
-
-
-
-
-
-
-        const product =
-            await deleteProduct(
-                productId
-            );
-
-
-
-
-
-
-
-        await createAuditLog({
-
-            action:"DELETE",
-
-            entity:"Product",
-
-            entityId:productId,
-
-            oldData:oldProduct,
-
-            newData:product
-
-        });
-
-
-
-
-
-
-
-        return successResponse(
-
-            "Product berhasil dihapus",
-
-            product
-
-        );
-
-
-
-    }catch(error){
-
-        return handleApiError(error);
 
     }
 
-}
+
+
+
+
+    const oldProduct =
+        await getProductById(
+            productId
+        );
+
+
+
+
+
+    if(!oldProduct){
+
+        throw new ApiError(
+            "Product tidak ditemukan",
+            404,
+            "PRODUCT_NOT_FOUND"
+        );
+
+    }
+
+
+
+
+
+    const product =
+        await deleteProduct(
+            productId
+        );
+
+
+
+
+
+    await createAuditLog({
+
+        action:"DELETE",
+
+        entity:"Product",
+
+        entityId:productId,
+
+        oldData:oldProduct,
+
+        newData:product
+
+    });
+
+
+
+
+
+    return successResponse(
+
+        "Product berhasil dihapus",
+
+        product
+
+    );
+
+
+});

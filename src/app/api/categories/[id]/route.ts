@@ -14,8 +14,8 @@ import {
 
 
 import {
-    handleApiError
-} from "@/lib/error-handler";
+    asyncHandler
+} from "@/lib/async-handler";
 
 
 import {
@@ -68,88 +68,77 @@ import {
  *       500:
  *         description: Internal server error
  */
-export async function GET(
+export const GET = asyncHandler(
+async(
     request:Request,
     context:{
         params: Promise<{id:string}>
     }
-){
-
-    try {
+)=>{
 
 
-        const {
-            id
-        } =
-        await context.params;
+    const {
+        id
+    } =
+    await context.params;
 
 
 
-        const categoryId =
-            Number(id);
-
-
-
-
-        if(isNaN(categoryId)){
-
-
-            throw new ApiError(
-                "ID category tidak valid",
-                400
-            );
-
-        }
-
-
-
-
-        const category =
-            await getCategoryById(
-                categoryId
-            );
+    const categoryId =
+        Number(id);
 
 
 
 
 
-        if(!category){
+    if(isNaN(categoryId)){
 
 
-            throw new ApiError(
-                "Category tidak ditemukan",
-                404
-            );
+        throw new ApiError(
+            "ID category tidak valid",
+            400,
+            "INVALID_CATEGORY_ID"
+        );
 
-        }
-
-
-
+    }
 
 
 
-        return successResponse(
 
-            "Berhasil mengambil detail category",
-
-            category
-
+    const category =
+        await getCategoryById(
+            categoryId
         );
 
 
 
 
-    }catch(error){
+
+    if(!category){
 
 
-        return handleApiError(error);
-
+        throw new ApiError(
+            "Category tidak ditemukan",
+            404,
+            "CATEGORY_NOT_FOUND"
+        );
 
     }
 
-}
 
 
+
+
+    return successResponse(
+
+        "Berhasil mengambil detail category",
+
+        category
+
+    );
+
+
+});
 
 /**
  * @swagger
@@ -206,106 +195,90 @@ export async function GET(
  *       500:
  *         description: Internal server error
  */
-export async function PUT(
+export const PUT = asyncHandler(
+async(
     request:NextRequest,
     context:{
         params:Promise<{id:string}>
     }
-){
-
-    try {
+)=>{
 
 
-        const payload =
-            authenticate(request);
+    const payload =
+        authenticate(request);
 
 
 
-        requireRole(
-            payload,
-            [
-                "ADMIN"
-            ]
+    requireRole(
+        payload,
+        [
+            "ADMIN"
+        ]
+    );
+
+
+
+
+
+    const {
+        id
+    } =
+    await context.params;
+
+
+
+
+    const categoryId =
+        Number(id);
+
+
+
+
+
+    if(isNaN(categoryId)){
+
+
+        throw new ApiError(
+            "ID category tidak valid",
+            400,
+            "INVALID_CATEGORY_ID"
         );
-
-
-
-
-        const {
-            id
-        } =
-        await context.params;
-
-
-
-
-        const categoryId =
-            Number(id);
-
-
-
-
-        if(isNaN(categoryId)){
-
-
-            throw new ApiError(
-                "ID category tidak valid",
-                400
-            );
-
-        }
-
-
-
-
-        const body =
-            await request.json();
-
-
-
-
-
-        const category =
-            await updateCategory(
-
-                categoryId,
-
-                body
-
-            );
-
-
-
-
-
-        return successResponse(
-
-            "Category berhasil diupdate",
-
-            category
-
-        );
-
-
-
-
-    }catch(error){
-
-
-        return handleApiError(error);
-
 
     }
 
-}
+
+
+
+    const body =
+        await request.json();
 
 
 
 
 
+    const category =
+        await updateCategory(
+
+            categoryId,
+
+            body
+
+        );
 
 
 
+
+
+    return successResponse(
+
+        "Category berhasil diupdate",
+
+        category
+
+    );
+
+
+});
 
 /**
  * @swagger
@@ -348,87 +321,77 @@ export async function PUT(
  *       500:
  *         description: Internal server error
  */
-export async function DELETE(
+export const DELETE = asyncHandler(
+async(
     request:NextRequest,
     context:{
         params:Promise<{id:string}>
     }
-){
-
-    try {
+)=>{
 
 
-        const payload =
-            authenticate(request);
+    const payload =
+        authenticate(request);
 
 
 
-        requireRole(
-            payload,
-            [
-                "ADMIN"
-            ]
+    requireRole(
+        payload,
+        [
+            "ADMIN"
+        ]
+    );
+
+
+
+
+
+    const {
+        id
+    } =
+    await context.params;
+
+
+
+
+    const categoryId =
+        Number(id);
+
+
+
+
+
+    if(isNaN(categoryId)){
+
+
+        throw new ApiError(
+            "ID category tidak valid",
+            400,
+            "INVALID_CATEGORY_ID"
         );
-
-
-
-
-
-        const {
-            id
-        } =
-        await context.params;
-
-
-
-
-        const categoryId =
-            Number(id);
-
-
-
-
-
-        if(isNaN(categoryId)){
-
-
-            throw new ApiError(
-                "ID category tidak valid",
-                400
-            );
-
-        }
-
-
-
-
-
-        const category =
-            await deleteCategory(
-                categoryId
-            );
-
-
-
-
-
-        return successResponse(
-
-            "Category berhasil dihapus",
-
-            category
-
-        );
-
-
-
-
-    }catch(error){
-
-
-        return handleApiError(error);
-
 
     }
 
-}
+
+
+
+
+    const category =
+        await deleteCategory(
+            categoryId
+        );
+
+
+
+
+
+    return successResponse(
+
+        "Category berhasil dihapus",
+
+        category
+
+    );
+
+
+});

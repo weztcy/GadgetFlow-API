@@ -19,8 +19,8 @@ import {
 
 
 import {
-    handleApiError
-} from "@/lib/error-handler";
+    asyncHandler
+} from "@/lib/async-handler";
 
 
 
@@ -65,24 +65,23 @@ import {
  *       404:
  *         description: Refresh token tidak ditemukan
  */
-export async function POST(
+export const POST = asyncHandler(
+async(
     request:NextRequest
-){
-
-    try {
+)=>{
 
 
-        const body =
-            await request.json();
+    const body =
+        await request.json();
 
 
 
 
 
-        const {
-            refreshToken
-        } =
-        body;
+    const {
+        refreshToken
+    } =
+    body;
 
 
 
@@ -90,32 +89,15 @@ export async function POST(
 
 
 
-        if(!refreshToken){
+    if(!refreshToken){
 
-            throw new ApiError(
-                "Refresh token wajib diisi",
-                400
-            );
+        throw new ApiError(
+            "Refresh token wajib diisi",
+            400,
+            "MISSING_REFRESH_TOKEN"
+        );
 
-        }
-
-
-
-
-
-
-
-
-        const token =
-            await prisma.refreshToken.findUnique({
-
-                where:{
-
-                    token:refreshToken
-
-                }
-
-            });
+    }
 
 
 
@@ -124,27 +106,13 @@ export async function POST(
 
 
 
-        if(!token){
 
-            throw new ApiError(
-                "Refresh token tidak ditemukan",
-                404
-            );
-
-        }
-
-
-
-
-
-
-
-
-        await prisma.refreshToken.delete({
+    const token =
+        await prisma.refreshToken.findUnique({
 
             where:{
 
-                id:token.id
+                token:refreshToken
 
             }
 
@@ -157,24 +125,50 @@ export async function POST(
 
 
 
-        return successResponse(
 
-            "Logout berhasil",
+    if(!token){
 
-            null
-
+        throw new ApiError(
+            "Refresh token tidak ditemukan",
+            404,
+            "REFRESH_TOKEN_NOT_FOUND"
         );
-
-
-
-
-
-    }catch(error){
-
-
-        return handleApiError(error);
-
 
     }
 
-}
+
+
+
+
+
+
+
+
+    await prisma.refreshToken.delete({
+
+        where:{
+
+            id:token.id
+
+        }
+
+    });
+
+
+
+
+
+
+
+
+
+    return successResponse(
+
+        "Logout berhasil",
+
+        null
+
+    );
+
+
+});
