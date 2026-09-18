@@ -4,7 +4,6 @@
 
 The API provides functionality for smartphone product management, category management, customer order processing, user authentication, authorization, audit tracking, and administrative operations through structured REST API endpoints.
 
----
 
 ## 📱 About the Project
 
@@ -26,9 +25,8 @@ This architecture improves maintainability, scalability, code organization, and 
 
 The API also implements security mechanisms including JWT authentication, role-based access control, password encryption, refresh token management, password recovery workflow, and audit logging.
 
----
 
-# ✨ Features
+## ✨ Features
 
 Key features and implementations include:
 
@@ -63,9 +61,8 @@ Key features and implementations include:
 * Nested relational API response
 * Swagger OpenAPI documentation
 
----
 
-# 📱 Product Management
+## 📱 Product Management
 
 GadgetFlow API provides complete CRUD operations for smartphone products.
 
@@ -93,9 +90,8 @@ Product information includes:
 
 The product deletion system uses **soft delete implementation** through `deletedAt` timestamp, allowing deleted records to remain available for database consistency and future management purposes.
 
----
 
-# 📂 Category Management
+## 📂 Category Management
 
 The API manages smartphone product categories with relational database support.
 
@@ -110,9 +106,8 @@ Features:
 
 Category deletion includes validation protection to prevent deletion when the category is still associated with existing products.
 
----
 
-# 🛒 Order Management
+## 🛒 Order Management
 
 GadgetFlow API provides order processing functionality for customer transactions.
 
@@ -133,9 +128,8 @@ The order system uses relational database structures between:
 
 Order creation uses Prisma database transaction handling to maintain data consistency during multi-step operations.
 
----
 
-# 🔐 Authentication & Authorization
+## 🔐 Authentication & Authorization
 
 The API implements a secure authentication system using JWT-based authentication.
 
@@ -165,9 +159,8 @@ Examples of protected operations:
 * Category management
 * Order management
 
----
 
-# 📧 Email & Password Recovery
+## 📧 Email & Password Recovery
 
 GadgetFlow API provides email-based account recovery functionality.
 
@@ -185,9 +178,8 @@ Email functionality is implemented using **Nodemailer**.
 
 Password reset tokens are securely managed with expiration handling to prevent reuse of expired tokens.
 
----
 
-# 🗄️ Database Management
+## 🗄️ Database Management
 
 The API uses **Prisma ORM** for database interaction and relational data management.
 
@@ -214,9 +206,8 @@ Database features:
 
 The database design follows relational database principles to maintain data consistency and scalability.
 
----
 
-# 📝 Validation & Error Handling
+## 📝 Validation & Error Handling
 
 The API implements structured request validation and centralized error handling.
 
@@ -237,9 +228,8 @@ Validation schemas include:
 * Category validation
 * Order validation
 
----
 
-# 📊 Audit Log System
+## 📊 Audit Log System
 
 GadgetFlow API includes activity tracking through audit logs.
 
@@ -270,9 +260,8 @@ Audit logs store:
 
 The audit system helps maintain transparency and operational monitoring.
 
----
 
-# 🏗️ Backend Architecture
+## 🏗️ Backend Architecture
 
 GadgetFlow API applies a layered backend architecture:
 
@@ -310,9 +299,8 @@ Responsibilities:
 **Database Layer**
 - Manage relational data using Prisma ORM
 
----
 
-# 🛡️ API Security
+## 🛡️ API Security
 
 Implemented security mechanisms:
 
@@ -326,9 +314,8 @@ Implemented security mechanisms:
 * Protected administrative endpoints
 * Centralized error management
 
----
 
-# 🛠️ Technologies
+## 🛠️ Technologies
 
 The main technologies and platforms used in this project are:
 
@@ -346,9 +333,8 @@ The main technologies and platforms used in this project are:
 * Swagger OpenAPI
 * Vercel
 
----
 
-# 📚 API Documentation
+## 📚 API Documentation
 
 GadgetFlow API provides API documentation using Swagger OpenAPI.
 
@@ -366,9 +352,8 @@ Swagger allows developers to:
 * Understand request and response formats
 * Integrate frontend applications efficiently
 
----
 
-# 🎯 Project Objectives
+## 🎯 Project Objectives
 
 This project was developed to:
 
@@ -381,9 +366,8 @@ This project was developed to:
 * Provide documented API endpoints using Swagger
 * Create a scalable backend foundation for future e-commerce features
 
----
 
-# 📜 License
+## 📜 License
 
 This project is maintained for portfolio, reference, and development purposes.
 
