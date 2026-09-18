@@ -1,0 +1,274 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+
+datasource db {
+  provider = "mysql"
+}
+
+
+
+
+
+model Product {
+
+  id Int @id @default(autoincrement())
+
+
+  name String
+
+
+  price Int
+
+
+  image String?
+
+
+  deletedAt DateTime?
+
+
+  categoryId Int?
+
+
+  category Category? @relation(fields: [categoryId], references: [id])
+
+
+  orderItems OrderItem[]
+
+
+
+  @@index([categoryId])
+
+  @@index([deletedAt])
+
+  @@index([name])
+
+}
+
+
+
+
+
+
+
+
+model Category {
+
+  id Int @id @default(autoincrement())
+
+
+  name String
+
+
+  products Product[]
+
+
+
+  @@index([name])
+
+}
+
+
+
+
+
+
+
+
+model User {
+
+  id Int @id @default(autoincrement())
+
+  name String
+
+  email String @unique
+
+  password String
+
+  role String @default("USER")
+
+  createdAt DateTime @default(now())
+
+
+  refreshTokens RefreshToken[]
+
+  passwordResetTokens PasswordResetToken[]
+
+}
+
+
+
+
+
+
+
+
+model RefreshToken {
+
+  id Int @id @default(autoincrement())
+
+
+  token String @unique
+
+
+  userId Int
+
+
+  expiredAt DateTime
+
+
+  createdAt DateTime @default(now())
+
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+
+
+  @@index([userId])
+
+  @@index([expiredAt])
+
+}
+
+
+
+
+
+
+
+
+model Order {
+
+  id Int @id @default(autoincrement())
+
+
+  customerName String
+
+
+  total Int
+
+
+  createdAt DateTime @default(now())
+
+
+  items OrderItem[]
+
+
+
+  @@index([createdAt])
+
+  @@index([customerName])
+
+}
+
+
+
+
+
+
+
+
+model OrderItem {
+
+  id Int @id @default(autoincrement())
+
+
+  orderId Int
+
+
+  productId Int
+
+
+  quantity Int
+
+
+  price Int
+
+
+
+  order Order @relation(fields: [orderId], references: [id])
+
+
+  product Product @relation(fields: [productId], references: [id])
+
+
+
+  @@index([orderId])
+
+  @@index([productId])
+
+}
+
+
+
+
+
+
+
+
+model AuditLog {
+
+  id Int @id @default(autoincrement())
+
+
+  userId Int?
+
+
+  action String
+
+
+  entity String
+
+
+  entityId Int
+
+
+  oldData Json?
+
+
+  newData Json?
+
+
+  createdAt DateTime @default(now())
+
+
+
+  @@index([userId])
+
+  @@index([entity])
+
+  @@index([entityId])
+
+  @@index([action])
+
+  @@index([createdAt])
+
+}
+
+model PasswordResetToken {
+
+  id Int @id @default(autoincrement())
+
+
+  token String @unique
+
+
+  userId Int
+
+
+  expiredAt DateTime
+
+
+  createdAt DateTime @default(now())
+
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+
+
+  @@index([userId])
+
+  @@index([expiredAt])
+
+}
