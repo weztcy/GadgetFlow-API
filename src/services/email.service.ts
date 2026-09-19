@@ -23,7 +23,7 @@ export async function sendWelcomeEmail(
 
 
         subject:
-        "Selamat datang di Belajar API",
+        "Selamat datang di GadgetFlow API",
 
 
 

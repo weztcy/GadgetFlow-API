@@ -1,71 +1,70 @@
 import swaggerJsdoc from "swagger-jsdoc";
 
-
 const options = {
+  definition: {
+    openapi: "3.0.0",
 
-    definition:{
+    info: {
+      title: "GadgetFlow API",
 
-        openapi:"3.0.0",
+      version: "1.0.0",
 
-
-        info:{
-
-            title:"Belajar API Documentation",
-
-            version:"1.0.0",
-
-            description:
-            "API documentation for ERP Learning Project"
-
-        },
-
-
-        servers:[
-
-            {
-                url:"http://localhost:3000"
-            }
-
-        ],
-
-
-
-        components:{
-
-
-            securitySchemes:{
-
-
-                bearerAuth:{
-
-
-                    type:"http",
-
-
-                    scheme:"bearer",
-
-
-                    bearerFormat:"JWT"
-
-                }
-
-            }
-
-        }
-
+      description: "REST API documentation for GadgetFlow application.",
     },
 
+    servers: [
+      {
+        url: "http://localhost:3000",
+        description: "Local development server",
+      },
+    ],
 
+    tags: [
+      {
+        name: "Authentication",
+        description: "Authentication and account access endpoints",
+      },
 
-    apis:[
+      {
+        name: "Admin",
+        description: "Admin protected endpoints",
+      },
 
-        process.cwd() + "/src/app/api/**/*.ts"
+      {
+        name: "Profile",
+        description: "Authenticated user profile endpoints",
+      },
 
-    ]
+      {
+        name: "Products",
+        description: "Product management endpoints",
+      },
 
+      {
+        name: "Categories",
+        description: "Product category management endpoints",
+      },
+
+      {
+        name: "Orders",
+        description: "Order management endpoints",
+      },
+    ],
+
+    components: {
+      securitySchemes: {
+        bearerAuth: {
+          type: "http",
+
+          scheme: "bearer",
+
+          bearerFormat: "JWT",
+        },
+      },
+    },
+  },
+
+  apis: [process.cwd() + "/src/app/api/**/*.ts"],
 };
 
-
-
-export const swaggerSpec =
-swaggerJsdoc(options);
+export const swaggerSpec = swaggerJsdoc(options);
