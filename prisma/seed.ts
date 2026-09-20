@@ -1,183 +1,334 @@
-import {
-    prisma
-} from "../src/lib/prisma";
-
+import { prisma } from "../src/lib/prisma";
 
 import bcrypt from "bcrypt";
 
+async function main() {
+  console.log("Seeding database...");
+
+  // ============================
+  // CLEAN TEST DATA
+  // ============================
+
+  await prisma.serialNumber.deleteMany({
+    where: {
+      serialNumber: {
+        startsWith: "TEST-",
+      },
+    },
+  });
+
+  await prisma.inventory.deleteMany();
+
+  await prisma.stockMovement.deleteMany();
+
+  await prisma.purchaseItem.deleteMany();
+
+  await prisma.purchase.deleteMany();
+
+  await prisma.orderItem.deleteMany();
+
+  await prisma.order.deleteMany();
+
+  await prisma.product.deleteMany({
+    where: {
+      name: {
+        startsWith: "TEST",
+      },
+    },
+  });
+
+  await prisma.category.deleteMany({
+    where: {
+      name: {
+        startsWith: "TEST",
+      },
+    },
+  });
+
+  await prisma.warehouse.deleteMany({
+    where: {
+      code: {
+        startsWith: "TEST",
+      },
+    },
+  });
+
+  await prisma.customer.deleteMany({
+    where: {
+      email: {
+        endsWith: "@gadgetflow.test",
+      },
+    },
+  });
+
+  await prisma.supplier.deleteMany({
+    where: {
+      email: {
+        endsWith: "@gadgetflow.test",
+      },
+    },
+  });
 
+  await prisma.user.deleteMany({
+    where: {
+      email: {
+        endsWith: "@gadgetflow.test",
+      },
+    },
+  });
 
+  // ============================
+  // USER
+  // ============================
 
-async function main(){
+  const password = await bcrypt.hash("password123", 10);
 
+  const admin = await prisma.user.create({
+    data: {
+      name: "TEST Admin",
 
+      email: "admin@gadgetflow.test",
 
-    // ============================
-    // CREATE USER
-    // ============================
+      password,
 
+      role: "ADMIN",
+    },
+  });
 
-    const adminPassword =
-        await bcrypt.hash(
-            "password123",
-            10
-        );
+  const user = await prisma.user.create({
+    data: {
+      name: "TEST User",
 
+      email: "user@gadgetflow.test",
 
-    const userPassword =
-        await bcrypt.hash(
-            "password123",
-            10
-        );
+      password,
 
+      role: "USER",
+    },
+  });
 
+  // ============================
+  // CATEGORY
+  // ============================
 
+  const smartphone = await prisma.category.create({
+    data: {
+      name: "TEST Smartphone",
+    },
+  });
 
-    await prisma.user.create({
+  const accessories = await prisma.category.create({
+    data: {
+      name: "TEST Accessories",
+    },
+  });
 
-        data:{
+  // ============================
+  // WAREHOUSE
+  // ============================
 
-            name:"Budi Admin",
+  const jakarta = await prisma.warehouse.create({
+    data: {
+      code: "TEST-WH-JKT",
 
-            email:"budi@gmail.com",
+      name: "TEST Warehouse Jakarta",
 
-            password:adminPassword,
+      location: "Jakarta",
 
-            role:"ADMIN"
+      status: "ACTIVE",
+    },
+  });
 
-        }
+  const semarang = await prisma.warehouse.create({
+    data: {
+      code: "TEST-WH-SMG",
 
-    });
+      name: "TEST Warehouse Semarang",
 
+      location: "Semarang",
 
+      status: "ACTIVE",
+    },
+  });
 
+  // ============================
+  // PRODUCT
+  // ============================
 
+  const iphone = await prisma.product.create({
+    data: {
+      sku: "TEST-IP15-001",
 
-    await prisma.user.create({
+      name: "TEST iPhone 15",
 
-        data:{
+      costPrice: 12000000,
 
-            name:"Andi User",
+      price: 15000000,
 
-            email:"andi@gmail.com",
+      categoryId: smartphone.id,
+    },
+  });
 
-            password:userPassword,
+  const samsung = await prisma.product.create({
+    data: {
+      sku: "TEST-S23-001",
 
-            role:"USER"
+      name: "TEST Samsung S23",
 
-        }
+      costPrice: 8000000,
 
-    });
+      price: 10000000,
 
+      categoryId: smartphone.id,
+    },
+  });
 
+  const charger = await prisma.product.create({
+    data: {
+      sku: "TEST-CHR-001",
 
+      name: "TEST Fast Charger",
 
+      costPrice: 150000,
 
+      price: 300000,
 
-    // ============================
-    // CREATE CATEGORY
-    // ============================
+      categoryId: accessories.id,
+    },
+  });
 
+  // ============================
+  // INVENTORY
+  // ============================
 
-    const elektronik =
-        await prisma.category.create({
+  await prisma.inventory.createMany({
+    data: [
+      {
+        productId: iphone.id,
 
-            data:{
+        warehouseId: jakarta.id,
 
-                name:"Elektronik"
+        quantity: 10,
+      },
 
-            }
+      {
+        productId: samsung.id,
 
-        });
+        warehouseId: jakarta.id,
 
+        quantity: 15,
+      },
 
+      {
+        productId: charger.id,
 
+        warehouseId: semarang.id,
 
+        quantity: 50,
+      },
+    ],
+  });
 
+  // ============================
+  // SERIAL NUMBER
+  // ============================
 
+  await prisma.serialNumber.createMany({
+    data: [
+      {
+        productId: iphone.id,
 
-    // ============================
-    // CREATE PRODUCT
-    // ============================
+        warehouseId: jakarta.id,
 
+        serialNumber: "TEST-IMEI-IP15-001",
 
-    await prisma.product.createMany({
+        status: "AVAILABLE",
+      },
 
-        data:[
+      {
+        productId: iphone.id,
 
+        warehouseId: jakarta.id,
 
-            {
+        serialNumber: "TEST-IMEI-IP15-002",
 
-                name:"Laptop",
+        status: "AVAILABLE",
+      },
+    ],
+  });
 
-                price:15000000,
+  // ============================
+  // SUPPLIER
+  // ============================
 
-                categoryId:
-                elektronik.id
+  await prisma.supplier.create({
+    data: {
+      name: "TEST Supplier Smartphone",
 
-            },
+      email: "supplier@gadgetflow.test",
 
+      phone: "081234567890",
+    },
+  });
 
+  // ============================
+  // CUSTOMER
+  // ============================
 
-            {
+  await prisma.customer.create({
+    data: {
+      name: "TEST Customer",
 
-                name:"Mouse",
+      email: "customer@gadgetflow.test",
 
-                price:300000,
+      phone: "089876543210",
+    },
+  });
 
-                categoryId:
-                elektronik.id
+  console.log(
+    `
+    Seed berhasil
 
-            },
+    ADMIN:
+    email: admin@gadgetflow.test
+    password: password123
 
 
+    USER:
+    email: user@gadgetflow.test
+    password: password123
 
-            {
 
-                name:"Keyboard",
+    TEST PRODUCT:
+    iPhone ID:
+    ${iphone.id}
 
-                price:800000,
+    Samsung ID:
+    ${samsung.id}
 
-                categoryId:
-                elektronik.id
 
-            }
+    TEST WAREHOUSE:
+    Jakarta ID:
+    ${jakarta.id}
 
+    Semarang ID:
+    ${semarang.id}
 
-        ]
 
-    });
-
-
-
-
-
-
-
-    console.log(
-        "Seed berhasil"
-    );
-
+    TEST SERIAL:
+    TEST-IMEI-IP15-001
+    TEST-IMEI-IP15-002
+    `,
+  );
 }
 
-
-
-
-
 main()
-
-.catch((error)=>{
-
-
+  .catch((error) => {
     console.error(error);
 
+    process.exit(1);
+  })
 
-})
-
-.finally(async()=>{
-
-
+  .finally(async () => {
     await prisma.$disconnect();
-
-
-});
+  });
