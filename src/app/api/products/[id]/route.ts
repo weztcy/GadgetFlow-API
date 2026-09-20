@@ -135,6 +135,10 @@ export const PUT = asyncHandler(
   ) => {
     const payload = authenticate(request);
 
+    if (!payload) {
+      throw new ApiError("Unauthorized", 401, "UNAUTHORIZED");
+    }
+
     requireRole(payload, ["ADMIN"]);
 
     const { id } = await context.params;
@@ -273,6 +277,10 @@ export const DELETE = asyncHandler(
     },
   ) => {
     const payload = authenticate(request);
+
+    if (!payload) {
+      throw new ApiError("Unauthorized", 401, "UNAUTHORIZED");
+    }
 
     requireRole(payload, ["ADMIN"]);
 

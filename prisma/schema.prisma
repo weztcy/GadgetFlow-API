@@ -2,82 +2,104 @@ generator client {
   provider = "prisma-client-js"
 }
 
-
 datasource db {
   provider = "mysql"
 }
 
+// =======================
+// ENUM
+// =======================
 
+enum Role {
+  ADMIN
+  WAREHOUSE_MANAGER
+  SALES
+  USER
+}
 
+enum WarehouseStatus {
+  ACTIVE
+  INACTIVE
+}
 
+enum StockMovementType {
+  PURCHASE
+  SALE
+  RETURN
+  ADJUSTMENT
+  DAMAGE
+  TRANSFER
+}
+
+enum SerialStatus {
+  AVAILABLE
+  RESERVED
+  SOLD
+  REPAIR
+  DAMAGED
+}
+
+// =======================
+// PRODUCT
+// =======================
 
 model Product {
-
   id Int @id @default(autoincrement())
 
+  sku String? @unique
 
   name String
 
+  costPrice Int?
 
   price Int
 
-
   image String?
-
 
   deletedAt DateTime?
 
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime?
 
   categoryId Int?
 
-
   category Category? @relation(fields: [categoryId], references: [id])
-
 
   orderItems OrderItem[]
 
+  purchaseItems PurchaseItem[]
 
+  inventories Inventory[]
+
+  serialNumbers SerialNumber[]
+
+  stockMovements StockMovement[]
 
   @@index([categoryId])
-
   @@index([deletedAt])
-
   @@index([name])
-
 }
 
-
-
-
-
-
-
+// =======================
+// CATEGORY
+// =======================
 
 model Category {
-
   id Int @id @default(autoincrement())
-
 
   name String
 
-
   products Product[]
 
-
-
   @@index([name])
-
 }
 
-
-
-
-
-
-
+// =======================
+// USER
+// =======================
 
 model User {
-
   id Int @id @default(autoincrement())
 
   name String
@@ -86,197 +108,358 @@ model User {
 
   password String
 
-  role String @default("USER")
+  role Role @default(USER)
 
   createdAt DateTime @default(now())
-
 
   refreshTokens RefreshToken[]
 
   passwordResetTokens PasswordResetToken[]
 
+  stockMovements StockMovement[]
 }
 
-
-
-
-
-
-
+// =======================
+// REFRESH TOKEN
+// =======================
 
 model RefreshToken {
-
   id Int @id @default(autoincrement())
-
 
   token String @unique
 
-
   userId Int
-
 
   expiredAt DateTime
 
-
   createdAt DateTime @default(now())
-
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-
-
   @@index([userId])
-
   @@index([expiredAt])
-
 }
 
-
-
-
-
-
-
+// =======================
+// ORDER
+// =======================
 
 model Order {
-
   id Int @id @default(autoincrement())
 
-
-  customerName String
-
+  customerId Int?
 
   total Int
 
-
   createdAt DateTime @default(now())
 
+  customer Customer? @relation(fields: [customerId], references: [id])
 
   items OrderItem[]
 
+  serialNumbers SerialNumber[] @relation("OrderSerial")
 
-
+  @@index([customerId])
   @@index([createdAt])
-
-  @@index([customerName])
-
 }
 
-
-
-
-
-
-
+// =======================
+// ORDER ITEM
+// =======================
 
 model OrderItem {
-
   id Int @id @default(autoincrement())
-
 
   orderId Int
 
-
   productId Int
-
 
   quantity Int
 
-
   price Int
-
-
 
   order Order @relation(fields: [orderId], references: [id])
 
+  product Product @relation(fields: [productId], references: [id])
+
+  @@index([orderId])
+  @@index([productId])
+}
+
+// =======================
+// WAREHOUSE
+// =======================
+
+model Warehouse {
+  id Int @id @default(autoincrement())
+
+  code String @unique
+
+  name String
+
+  location String?
+
+  status WarehouseStatus @default(ACTIVE)
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime?
+
+  inventories Inventory[]
+
+  purchaseItems PurchaseItem[]
+
+  stockMovements StockMovement[]
+
+  serialNumbers SerialNumber[]
+}
+
+// =======================
+// INVENTORY
+// =======================
+
+model Inventory {
+  id Int @id @default(autoincrement())
+
+  productId Int
+
+  warehouseId Int
+
+  quantity Int @default(0)
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime?
 
   product Product @relation(fields: [productId], references: [id])
 
+  warehouse Warehouse @relation(fields: [warehouseId], references: [id])
 
-
-  @@index([orderId])
-
+  @@unique([productId, warehouseId])
   @@index([productId])
-
+  @@index([warehouseId])
 }
 
+// =======================
+// STOCK MOVEMENT
+// =======================
 
-
-
-
-
-
-
-model AuditLog {
-
+model StockMovement {
   id Int @id @default(autoincrement())
 
+  productId Int
+
+  warehouseId Int
+
+  type StockMovementType
+
+  quantity Int
+
+  beforeQuantity Int?
+
+  afterQuantity Int?
+
+  reference String?
+
+  note String?
+
+  createdBy Int?
+
+  createdAt DateTime @default(now())
+
+  product Product @relation(fields: [productId], references: [id])
+
+  warehouse Warehouse @relation(fields: [warehouseId], references: [id])
+
+  user User? @relation(fields: [createdBy], references: [id])
+
+  @@index([productId])
+  @@index([warehouseId])
+  @@index([createdAt])
+}
+
+// =======================
+// SERIAL NUMBER
+// =======================
+
+model SerialNumber {
+  id Int @id @default(autoincrement())
+
+  productId Int
+
+  warehouseId Int
+
+  serialNumber String @unique
+
+  status SerialStatus @default(AVAILABLE)
+
+  orderId Int?
+
+  soldAt DateTime?
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime?
+
+  product Product @relation(fields: [productId], references: [id])
+
+  warehouse Warehouse @relation(fields: [warehouseId], references: [id])
+
+  order Order? @relation("OrderSerial", fields: [orderId], references: [id])
+
+  @@index([productId])
+  @@index([warehouseId])
+  @@index([status])
+}
+
+// =======================
+// AUDIT LOG
+// =======================
+
+model AuditLog {
+  id Int @id @default(autoincrement())
 
   userId Int?
 
-
   action String
-
 
   entity String
 
-
   entityId Int
-
 
   oldData Json?
 
-
   newData Json?
-
 
   ipAddress String?
 
-
   userAgent String?
-
 
   createdAt DateTime @default(now())
 
-
-
   @@index([userId])
-
   @@index([entity])
-
   @@index([entityId])
-
   @@index([action])
-
   @@index([createdAt])
-
   @@index([ipAddress])
-
 }
 
+// =======================
+// PASSWORD RESET TOKEN
+// =======================
+
 model PasswordResetToken {
-
   id Int @id @default(autoincrement())
-
 
   token String @unique
 
-
   userId Int
-
 
   expiredAt DateTime
 
-
   createdAt DateTime @default(now())
-
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-
-
   @@index([userId])
-
   @@index([expiredAt])
+}
 
+// =======================
+// CUSTOMER
+// =======================
+
+model Customer {
+  id Int @id @default(autoincrement())
+
+  name String
+
+  phone String?
+
+  email String? @unique
+
+  address String?
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime?
+
+  orders Order[]
+
+  @@index([name])
+  @@index([phone])
+}
+
+// =======================
+// SUPPLIER
+// =======================
+
+model Supplier {
+  id Int @id @default(autoincrement())
+
+  name String
+
+  phone String?
+
+  email String? @unique
+
+  address String?
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime?
+
+  purchases Purchase[]
+
+  @@index([name])
+}
+
+// =======================
+// PURCHASE
+// =======================
+
+model Purchase {
+  id Int @id @default(autoincrement())
+
+  supplierId Int?
+
+  total Int
+
+  createdAt DateTime @default(now())
+
+  supplier Supplier? @relation(fields: [supplierId], references: [id])
+
+  items PurchaseItem[]
+
+  @@index([supplierId])
+  @@index([createdAt])
+}
+
+// =======================
+// PURCHASE ITEM
+// =======================
+
+model PurchaseItem {
+  id Int @id @default(autoincrement())
+
+  purchaseId Int
+
+  productId Int
+
+  warehouseId Int
+
+  quantity Int
+
+  price Int
+
+  purchase Purchase @relation(fields: [purchaseId], references: [id], onDelete: Cascade)
+
+  product Product @relation(fields: [productId], references: [id])
+
+  warehouse Warehouse @relation(fields: [warehouseId], references: [id])
+
+  @@index([purchaseId])
+  @@index([productId])
+  @@index([warehouseId])
 }

@@ -60,6 +60,18 @@ Key features and implementations include:
 * Soft delete implementation
 * Nested relational API response
 * Swagger OpenAPI documentation
+* Warehouse management
+* Multi warehouse inventory support
+* Inventory quantity management
+* Low stock monitoring
+* Stock movement tracking
+* Stock adjustment workflow
+* Purchase transaction management
+* Supplier management
+* Serial number / IMEI tracking
+* Automatic stock update from purchase
+* Automatic stock reduction from order
+* Transaction audit tracking
 
 ## 📱 Product Management
 
@@ -108,7 +120,7 @@ Category deletion includes validation protection to prevent deletion when the ca
 
 ## 🛒 Order Management
 
-GadgetFlow API provides order processing functionality for customer transactions.
+GadgetFlow API provides order processing functionality for customer transactions with integrated inventory and serial number tracking.
 
 Order features include:
 
@@ -117,16 +129,159 @@ Order features include:
 - Connect orders with smartphone products
 - Retrieve order details
 - Delete orders
-- Maintain transaction relationships
+- Automatic stock reduction
+- Stock movement generation
+- Serial number ownership tracking
 
-The order system uses relational database structures between:
+Order processing integrates with:
 
 - Orders
 - Order Items
 - Products
+- Inventory
+- Stock Movement
+- Serial Numbers
+
+When an order is created, the system automatically:
+
+- Validates product availability
+- Reduces inventory quantity
+- Creates SALE stock movement
+- Updates serialized product status to SOLD when serial number is provided
 
 Order creation uses Prisma database transaction handling to maintain data consistency during multi-step operations.
 
+## 🏢 Warehouse Management
+
+GadgetFlow API provides warehouse management functionality to support multi-location inventory operations.
+
+Features:
+
+- Create warehouse
+- Retrieve warehouse list
+- Retrieve warehouse details
+- Update warehouse information
+- Manage warehouse status
+
+Warehouse information includes:
+
+- Warehouse code
+- Warehouse name
+- Location
+- Active/inactive status
+
+Warehouse relationships are integrated with:
+
+- Inventory
+- Purchase
+- Stock Movement
+- Serial Number
+
+This allows stock tracking based on product and warehouse location.
+
+## 📦 Inventory Management
+
+The inventory module manages product stock quantity for each warehouse location.
+
+Features:
+
+- Product stock tracking
+- Warehouse-based inventory
+- Inventory quantity updates
+- Low stock monitoring
+- Stock availability validation
+
+Inventory structure:
+
+- Product
+- Warehouse
+- Quantity
+- Created timestamp
+- Updated timestamp
+
+Inventory changes are connected with stock movement records for operational tracking.
+## 📊 Stock Movement Management
+
+Stock movement provides transaction history for every inventory change.
+
+Supported movement types:
+
+- PURCHASE
+- SALE
+- ADJUSTMENT
+
+Stock movement records contain:
+
+- Product information
+- Warehouse information
+- Movement type
+- Quantity change
+- Previous quantity
+- New quantity
+- Reference transaction
+- Notes
+- Timestamp
+
+Stock movement is automatically generated from:
+
+- Purchase transactions
+- Customer orders
+- Stock adjustments
+
+## 🔧 Stock Adjustment Management
+
+Stock adjustment provides controlled inventory correction functionality.
+
+Features:
+
+- Increase stock quantity
+- Decrease stock quantity
+- Adjustment notes
+- Automatic inventory update
+- Automatic stock movement creation
+
+Adjustment workflow:
+
+Stock Adjustment Request
+
+↓
+
+Inventory Update
+
+↓
+
+Stock Movement Record
+
+This feature supports inventory correction without directly modifying stock records manually.
+
+## 🔢 Serial Number Management
+
+GadgetFlow API supports smartphone serial number / IMEI tracking.
+
+Features:
+
+- Create serial number records
+- Retrieve serial number details
+- Update serial status
+- Delete unused serial numbers
+- Track serial ownership through orders
+
+Supported serial statuses:
+
+- AVAILABLE
+- RESERVED
+- SOLD
+- REPAIR
+- DAMAGED
+
+Serial number integration:
+
+- Purchase
+- Warehouse
+- Inventory
+- Order
+
+When a serialized product is sold, the system automatically updates the serial status to SOLD.
 
 ## 🔐 Authentication & Security
 
@@ -188,8 +343,16 @@ Database entities include:
 - User
 - Product
 - Category
+- Customer
+- Supplier
+- Warehouse
+- Inventory
+- Stock Movement
+- Serial Number
 - Order
 - Order Item
+- Purchase
+- Purchase Item
 - Refresh Token
 - Password Reset Token
 - Audit Log
@@ -227,6 +390,11 @@ Validation schemas include:
 - Product validation
 - Category validation
 - Order validation
+- Warehouse validation
+- Inventory validation
+- Purchase validation
+- Serial Number validation
+- Stock Adjustment validation
 
 
 ## 📊 Audit Logging
@@ -244,11 +412,18 @@ Tracked activities include:
 - Product update
 - Product deletion
 - Category modification
+- Warehouse creation
+- Warehouse update
+- Inventory update
+- Purchase creation
+- Stock adjustment activity
+- Serial number creation
+- Serial number update
+- Serial number deletion
 - Order creation
 - Order deletion
 
 Audit logs store:
-
 - User information
 - Action type
 - Entity information
@@ -309,7 +484,15 @@ Documentation includes:
 * Authentication endpoints
 * Product endpoints
 * Category endpoints
+* Warehouse endpoints
+* Inventory endpoints
+* Stock Movement endpoints
+* Stock Adjustment endpoints
+* Serial Number endpoints
+* Purchase endpoints
 * Order endpoints
+* Audit endpoints
+
 
 Swagger allows developers to:
 
@@ -350,6 +533,13 @@ This project was developed to:
 * Develop reusable REST API services
 * Provide documented API endpoints using Swagger
 * Create a scalable backend foundation for future e-commerce features
+* Implement warehouse-based inventory management
+* Develop stock transaction tracking system
+* Implement stock adjustment workflow
+* Build purchase and stock receiving process
+* Implement serial number tracking for smartphone products
+* Integrate inventory flow with order processing
+* Provide ERP-style operational traceability
 
 
 ## 📜 License
