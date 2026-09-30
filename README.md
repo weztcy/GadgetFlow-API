@@ -1,4 +1,4 @@
-# GadgetFlow AP
+# GadgetFlow API
 
 **GadgetFlow API** is a backend REST API developed using **Next.js** to support data management and backend operations for the **GadgetFlow - Smartphone Product & Order Management System**.
 
